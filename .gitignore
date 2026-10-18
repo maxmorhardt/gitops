@@ -4,27 +4,5 @@ charts
 sealed-secrets-key*.yaml
 secret.yaml
 
-# python
-.venv/
-__pycache__
-.env
-k3s/bootstrap/bootstrap-output/
-k3s/bootstrap/bootstrap-all.sh
-k3s/bootstrap/node/network-watchdog.env
-
 # pg
 postgres-dumpall*.sql
-
-# wrangler
-.wrangler
-
-# terraform
-.terraform
-
-*.tfstate
-*.tfstate.*
-*.tfplan
-crash.log
-
-*.auto.tfvars
-terraform.tfvars
