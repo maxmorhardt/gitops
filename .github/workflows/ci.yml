@@ -94,36 +94,19 @@ jobs:
         system-upgrade-controller/plans.yaml
         storage/local-path-retain.yaml
 
-  validate-terraform:
-    strategy:
-      fail-fast: false
-      matrix:
-        module: [aws, cloudflare, github]
-    uses: maxmorhardt/workflows/.github/workflows/validate-terraform.yml@main
-    with:
-      repository: ${{ github.repository }}
-      working_directory: terraform/${{ matrix.module }}
-    secrets:
-      aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      cloudflare_api_token: ${{ matrix.module == 'cloudflare' && secrets.CLOUDFLARE_API_TOKEN || '' }}
-      repo_admin_token: ${{ matrix.module == 'github' && secrets.REPO_ADMIN_TOKEN || '' }}
-      tf_vars: ${{ matrix.module == 'cloudflare' && secrets.TF_VARS || '' }}
-
   validate-complete:
     name: Validate Complete
     if: always()
-    needs: [validate-charts, validate-manifests, validate-terraform]
+    needs: [validate-charts, validate-manifests]
     runs-on: ubuntu-latest
     steps:
       - name: Verify all validations succeeded
         env:
           CHARTS: ${{ needs.validate-charts.result }}
           MANIFESTS: ${{ needs.validate-manifests.result }}
-          TERRAFORM: ${{ needs.validate-terraform.result }}
         run: |
-          echo "validate-charts=$CHARTS validate-manifests=$MANIFESTS validate-terraform=$TERRAFORM"
-          if [ "$CHARTS" != "success" ] || [ "$MANIFESTS" != "success" ] || [ "$TERRAFORM" != "success" ]; then
+          echo "validate-charts=$CHARTS validate-manifests=$MANIFESTS"
+          if [ "$CHARTS" != "success" ] || [ "$MANIFESTS" != "success" ]; then
             echo "a required validation did not succeed"
             exit 1
           fi

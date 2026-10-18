@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: kube-system
   source:
-    repoURL: https://github.com/maxmorhardt/infra.git
+    repoURL: https://github.com/maxmorhardt/gitops.git
     targetRevision: main
     path: storage
   syncPolicy:

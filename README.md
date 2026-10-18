@@ -25,7 +25,7 @@ A comprehensive self-hosted Kubernetes (K3s) infrastructure stack with productio
 - **Authentication** via Dex OIDC, federating Google and GitHub sign-in
 - **Data Persistence** with PostgreSQL HA cluster and Valkey for caches and event streams
 - **GitOps CD** with Argo CD — every workload reconciled from git, self-healing and pruning
-- **Out-of-Cluster IaC** with Terraform — the S3 backup bucket, Cloudflare DNS, and GitHub rulesets as code, with remote state in S3
+- **Out-of-Cluster IaC** with Terraform in the `maxhq` monorepo — the S3 backup bucket, Cloudflare DNS, and GitHub rulesets as code, with remote state in S3
 - **Secrets in Git** with Sealed Secrets — encrypted at rest in this repo, unsealed in-cluster by the controller
 - **CI Pipeline** using GitHub Actions with shared reusable workflows
 - **Monitoring & Observability** with Prometheus, Grafana dashboards, and Alertmanager (Discord + email alerts, healthchecks.io dead-man's switch)
@@ -71,14 +71,14 @@ The one exception is Argo CD itself, which cannot deploy itself from nothing: [a
 
 On a bare cluster the bootstrap order is:
 
-1. **Core Infrastructure**: K3s cluster with Tailscale on nodes
+1. **Core Infrastructure**: K3s cluster with Tailscale on nodes, bootstrapped from [maxhq/infra/k3s](https://github.com/maxmorhardt/maxhq/tree/main/infra/k3s)
 2. **Namespaces**: `./namespaces.sh`
 3. **Argo CD**: `cd argocd && ./bootstrap.sh` — everything below is then reconciled automatically
 4. **Sealing key**: restore the Sealed Secrets private key before anything that needs a secret syncs — see [sealed-secrets/SETUP.md](sealed-secrets/SETUP.md)
 5. **Storage Layer**, **Database Layer** (Postgres), **Traffic Management** (Envoy Gateway), **Kube Prometheus Stack**, **Core Services** (Valkey, Loki, Alloy), **Authentication** (Dex), **kured**, **system-upgrade-controller**
 
 ### Out-of-Cluster Resources
-Argo CD reconciles everything inside the cluster. What it cannot reach, the S3 bucket CNPG archives backups to, the `maxstash.io` DNS records, and the GitHub repository rulesets, is managed with Terraform in [terraform/](terraform/). A pull request plans every module and merging to `main` applies it, so this ships the same way a values change does. Nothing reconciles it though, so a weekly scheduled plan is the only drift signal. See [terraform/SETUP.md](terraform/SETUP.md).
+Argo CD reconciles everything inside the cluster. What it cannot reach, the S3 bucket CNPG archives backups to, the `maxstash.io` DNS records, and the GitHub repository rulesets, is managed with Terraform in [maxhq/infra/terraform](https://github.com/maxmorhardt/maxhq/tree/main/infra/terraform). A pull request there plans every module and merging to `main` applies it. Nothing reconciles it though, so a weekly scheduled plan is the only drift signal. See its [SETUP.md](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/SETUP.md).
 
 ### CI/CD
 CI validates charts and manifests via GitHub Actions using shared reusable workflows at `maxmorhardt/workflows`. CD is Argo CD pulling from git — CI pushes nothing to the cluster. An app's release pipeline ends by committing its new image tag into [argocd/apps/](argocd/apps/).

@@ -5,7 +5,7 @@ Gateway API implementation fronting all HTTP traffic for `maxstash.io`. Replaces
 Two pieces:
 
 1. **envoy-gateway** (this directory) — the upstream controller chart, plus the Gateway API CRDs. Synced from [argocd/infra/envoy-gateway.yaml](../argocd/infra/envoy-gateway.yaml).
-2. **maxstash-gateway** — chart in the `charts` repo with the actual Gateway resources: the `maxstash` GatewayClass + Gateway (listeners for `maxstash.io` and `*.maxstash.io` on 443, http→https redirect on 80), the `EnvoyProxy` config (2 proxy replicas), and a `ClientTrafficPolicy` resolving the real client IP from `X-Forwarded-For` against the trusted Cloudflare CIDRs, and that strips client-supplied identity headers (`X-Auth-*`, `X-Internal-Token`) before any route sees them. Synced from [argocd/apps/maxstash-gateway.yaml](../argocd/apps/maxstash-gateway.yaml).
+2. **maxstash-gateway** — chart in `maxhq/charts` with the actual Gateway resources: the `maxstash` GatewayClass + Gateway (listeners for `maxstash.io` and `*.maxstash.io` on 443, http→https redirect on 80), the `EnvoyProxy` config (2 proxy replicas), and a `ClientTrafficPolicy` resolving the real client IP from `X-Forwarded-For` against the trusted Cloudflare CIDRs, and that strips client-supplied identity headers (`X-Auth-*`, `X-Internal-Token`) before any route sees them. Synced from [argocd/apps/maxstash-gateway.yaml](../argocd/apps/maxstash-gateway.yaml).
 
 Apps attach by creating an `HTTPRoute` in their own namespace with `parentRefs` pointing at `maxstash` / `envoy-gateway-system`. The Gateway allows routes from all namespaces.
 
