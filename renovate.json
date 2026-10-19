@@ -1,78 +1,49 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>maxmorhardt/workflows//renovate/default.json"
-  ],
+  "extends": ["github>maxmorhardt/workflows//renovate/default.json"],
   "customManagers": [
     {
       "customType": "regex",
       "description": "track pinned helm chart versions in the ci validate matrix",
-      "managerFilePatterns": [
-        "/^\\.github/workflows/ci\\.ya?ml$/"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: registryUrl=(?<registryUrl>\\S+))?[^']*'(?<currentValue>[^']+)'"
-      ]
+      "managerFilePatterns": ["/^\\.github/workflows/ci\\.ya?ml$/"],
+      "matchStrings": ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: registryUrl=(?<registryUrl>\\S+))?[^']*'(?<currentValue>[^']+)'"]
     },
     {
       "customType": "regex",
       "description": "track the pinned argo-cd chart version in bootstrap/argocd.sh",
-      "managerFilePatterns": [
-        "/^bootstrap/argocd\\.sh$/"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: registryUrl=(?<registryUrl>\\S+))?[\\s\\S]*?--version (?<currentValue>\\S+)"
-      ]
+      "managerFilePatterns": ["/^bootstrap/argocd\\.sh$/"],
+      "matchStrings": ["# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: registryUrl=(?<registryUrl>\\S+))?[\\s\\S]*?--version (?<currentValue>\\S+)"]
     },
     {
       "customType": "regex",
       "description": "track pinned github-release manifest urls in kustomizations",
-      "managerFilePatterns": [
-        "/(^|/)kustomization\\.ya?ml$/"
-      ],
+      "managerFilePatterns": ["/(^|/)kustomization\\.ya?ml$/"],
       "datasourceTemplate": "github-releases",
-      "matchStrings": [
-        "github\\.com/(?<depName>[^/]+/[^/]+)/releases/download/(?<currentValue>v[0-9][^/]+)/"
-      ]
+      "matchStrings": ["github\\.com/(?<depName>[^/]+/[^/]+)/releases/download/(?<currentValue>v[0-9][^/]+)/"]
     }
   ],
   "argocd": {
     "description": "infra Application chart versions; apps/ is left alone, CI commits those",
-    "managerFilePatterns": [
-      "/^clusters/[^/]+/infra/.*\\.ya?ml$/"
-    ]
+    "managerFilePatterns": ["/^clusters/[^/]+/infra/.*\\.ya?ml$/"]
   },
   "packageRules": [
     {
       "description": "chart bumps are reviewed and merged by hand",
-      "matchManagers": [
-        "custom.regex",
-        "argocd"
-      ],
+      "matchManagers": ["custom.regex", "argocd"],
       "automerge": false,
-      "addLabels": [
-        "deploy"
-      ]
+      "addLabels": ["deploy"]
     },
     {
       "description": "infra bumps reach dev first, in their own PR",
-      "matchManagers": [
-        "argocd"
-      ],
-      "matchFileNames": [
-        "clusters/dev/**"
-      ],
+      "matchManagers": ["argocd"],
+      "matchFileNames": ["clusters/dev/**"],
       "groupName": "dev infrastructure",
       "additionalBranchPrefix": "dev-"
     },
     {
       "description": "the same bumps reach prod once they have run in dev for a week",
-      "matchManagers": [
-        "argocd"
-      ],
-      "matchFileNames": [
-        "clusters/prod/**"
-      ],
+      "matchManagers": ["argocd"],
+      "matchFileNames": ["clusters/prod/**"],
       "groupName": "prod infrastructure",
       "additionalBranchPrefix": "prod-",
       "minimumReleaseAge": "10 days"
