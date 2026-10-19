@@ -16,7 +16,7 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 | --- | --- | --- |
 | Nodes | Raspberry Pis at home | Contabo VPSes |
 | Hostnames | `dev.maxhq.io`, `<app>.dev.maxhq.io` (tailnet only) | `maxhq.io`, `<app>.maxhq.io` |
-| Deploys | every merge to an app's `main` | every release, after approval |
+| Deploys | every merge to an app's `main`: CI sets `sha-<commit>` images and `0.0.0-sha-<commit>` charts | every release, after approval: the promoted image or the released chart version |
 
 ## How it fits together
 
