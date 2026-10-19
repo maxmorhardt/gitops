@@ -4,8 +4,8 @@ Gateway API implementation fronting all HTTP traffic for `maxhq.io`. Replaces in
 
 Two pieces:
 
-1. **envoy-gateway** (this directory) — the upstream controller chart, plus the Gateway API CRDs. Synced from [clusters/prod/infra/envoy-gateway.yaml](../clusters/prod/infra/envoy-gateway.yaml).
-2. **gateway** — chart in `maxhq/charts` with the actual Gateway resources: the `maxhq` GatewayClass + Gateway (listeners for `maxhq.io` and `*.maxhq.io` on 443, http→https redirect on 80), the `EnvoyProxy` config (2 proxy replicas), and a `ClientTrafficPolicy` resolving the real client IP from `X-Forwarded-For` against the trusted Cloudflare CIDRs, and that strips client-supplied identity headers (`X-Auth-*`, `X-Internal-Token`) before any route sees them. Synced from [clusters/prod/apps/gateway.yaml](../clusters/prod/apps/gateway.yaml).
+1. **envoy-gateway** (this directory) — the upstream controller chart, plus the Gateway API CRDs. Synced from [clusters/prod/infra/envoy-gateway.yaml](../../clusters/prod/infra/envoy-gateway.yaml).
+2. **gateway** — chart in `maxhq/charts` with the actual Gateway resources: the `maxhq` GatewayClass + Gateway (listeners for `maxhq.io` and `*.maxhq.io` on 443, http→https redirect on 80), the `EnvoyProxy` config (2 proxy replicas), and a `ClientTrafficPolicy` resolving the real client IP from `X-Forwarded-For` against the trusted Cloudflare CIDRs, and that strips client-supplied identity headers (`X-Auth-*`, `X-Internal-Token`) before any route sees them. Synced from [clusters/prod/apps/gateway.yaml](../../clusters/prod/apps/gateway.yaml).
 
 Apps attach by creating an `HTTPRoute` in their own namespace with `parentRefs` pointing at `maxhq` / `envoy-gateway-system`. The Gateway allows routes from all namespaces.
 

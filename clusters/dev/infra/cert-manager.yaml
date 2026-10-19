@@ -19,7 +19,7 @@ spec:
       targetRevision: v1.21.2
       helm:
         valueFiles:
-          - $values/cert-manager/values.yaml
+          - $values/infrastructure/cert-manager/values.yaml
     - repoURL: https://github.com/maxmorhardt/gitops.git
       targetRevision: main
       ref: values

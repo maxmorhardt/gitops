@@ -4,7 +4,7 @@
 `reclaimPolicy: Retain` instead of the default `Delete`, so deleting a PVC leaves the data on
 disk rather than wiping it. Used by anything whose data outlives its claim, notably Postgres.
 
-Synced from [clusters/prod/infra/storage.yaml](../clusters/prod/infra/storage.yaml) as a plain manifest
+Synced from [clusters/prod/infra/storage.yaml](../../clusters/prod/infra/storage.yaml) as a plain manifest
 directory, not a chart.
 
 ## Notes

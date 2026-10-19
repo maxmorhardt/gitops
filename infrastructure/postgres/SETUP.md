@@ -18,7 +18,7 @@ Three secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-d
 ## Recovery
 
 Cluster mode is the `valueFiles` entry in
-[clusters/prod/infra/postgres-cluster.yaml](../clusters/prod/infra/postgres-cluster.yaml):
+[clusters/prod/infra/postgres-cluster.yaml](../../clusters/prod/infra/postgres-cluster.yaml):
 
 1. Point it at `values-cluster-recovery.yaml`, merge, wait for all 3 instances ready.
 2. Point it back at `values-cluster.yaml` for standalone with backups enabled.

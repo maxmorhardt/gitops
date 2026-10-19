@@ -1,7 +1,7 @@
 # Secrets per cluster
 
 Every value here is sealed with the cluster's own key into `clusters/<cluster>/secrets/<namespace>/<name>.yaml`
-(see [sealed-secrets/SETUP.md](../sealed-secrets/SETUP.md)). Fetch the cert once Argo CD has synced sealed-secrets:
+(see [infrastructure/sealed-secrets/SETUP.md](../infrastructure/sealed-secrets/SETUP.md)). Fetch the cert once Argo CD has synced sealed-secrets:
 
 ```bash
 kubeseal --context <cluster> --controller-name sealed-secrets --controller-namespace sealed-secrets \
@@ -29,7 +29,7 @@ everything except the origin certificate and the OAuth app credentials noted bel
 | `cnpg-database/postgres-dex-user` | `kubernetes.io/basic-auth` | `username`, `password` | `dex`, same password as `DEX_POSTGRES_PASSWORD` |
 | `dex/dex-env` | generic | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `DEX_POSTGRES_PASSWORD`, `ARGOCD_CLIENT_SECRET`, `AGES_CLIENT_SECRET` | Google client can be shared (both callbacks registered); GitHub needs one OAuth app per cluster (`https://login.maxhq.io/callback`, `https://login.dev.maxhq.io/callback`) |
 | `argocd/argocd-oidc` | generic | `clientSecret` | same as `ARGOCD_CLIENT_SECRET` |
-| `valkey/valkey-users` | generic | `default`, `squares` | generated; `squares` must hash to the `user squares on #<sha256>` line in `valkey/values.yaml` (`printf %s <password> \| sha256sum`) — update that line if you generate a new one |
+| `valkey/valkey-users` | generic | `default`, `squares` | generated; `squares` must hash to the `user squares on #<sha256>` line in `infrastructure/valkey/values.yaml` (`printf %s <password> \| sha256sum`) — update that line if you generate a new one |
 | `kube-system/kured-discord` | generic | `url` | Discord webhook in Shoutrrr form: `discord://<token>@<id>` |
 | `squares/squares-contests-env` | generic | see below | |
 | `squares/squares-games-env` | generic | see below | |
@@ -48,7 +48,7 @@ everything except the origin certificate and the OAuth app credentials noted bel
 | namespace / name | type | keys | value |
 | --- | --- | --- | --- |
 | `cert-manager/cloudflare-api-token` | generic | `api-token` | Cloudflare token with Zone → DNS: Edit on `maxhq.io`, for DNS-01 |
-| `cert-manager/zerossl-eab` | generic | `hmac` | ZeroSSL → Developer → EAB HMAC key (its key ID goes in `cert-manager/manifests/cluster-issuer.yaml`) |
+| `cert-manager/zerossl-eab` | generic | `hmac` | ZeroSSL → Developer → EAB HMAC key (its key ID goes in `infrastructure/cert-manager/manifests/cluster-issuer.yaml`) |
 
 Dev's TLS certificate is issued by cert-manager into `envoy-gateway-system/dev.maxhq.io-tls`; dev has no backups, so no AWS credentials.
 

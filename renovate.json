@@ -12,8 +12,8 @@
     },
     {
       "customType": "regex",
-      "description": "track the pinned argo-cd chart version in bootstrap.sh",
-      "managerFilePatterns": ["/(^|/)bootstrap\\.sh$/"],
+      "description": "track the pinned argo-cd chart version in bootstrap/argocd.sh",
+      "managerFilePatterns": ["/^bootstrap/argocd\\.sh$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)(?: registryUrl=(?<registryUrl>\\S+))?[\\s\\S]*?--version (?<currentValue>\\S+)"
       ]

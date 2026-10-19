@@ -15,45 +15,45 @@ jobs:
             chart_version: '10.10.3'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
-            values_file: argocd/values.yaml
+            values_file: infrastructure/argocd/values.yaml
           - chart: dex/dex
             # renovate: datasource=helm depName=dex registryUrl=https://charts.dexidp.io
             chart_version: '0.26.0'
             helm_repo_name: dex
             helm_repo_url: https://charts.dexidp.io
-            values_file: dex/values.yaml
+            values_file: infrastructure/dex/values.yaml
           - chart: oci://docker.io/envoyproxy/gateway-helm
             # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm
             chart_version: '1.9.2'
-            values_file: envoy-gateway/values.yaml
+            values_file: infrastructure/envoy-gateway/values.yaml
           - chart: kubereboot/kured
             # renovate: datasource=helm depName=kured registryUrl=https://kubereboot.github.io/charts
             chart_version: '6.1.0'
             helm_repo_name: kubereboot
             helm_repo_url: https://kubereboot.github.io/charts
-            values_file: kured/values.yaml
+            values_file: infrastructure/kured/values.yaml
           - chart: oci://docker.io/cloudpirates/valkey
             # renovate: datasource=docker depName=docker.io/cloudpirates/valkey
             chart_version: '0.25.13'
-            values_file: valkey/values.yaml
+            values_file: infrastructure/valkey/values.yaml
           - chart: cnpg/cloudnative-pg
             # renovate: datasource=helm depName=cloudnative-pg registryUrl=https://cloudnative-pg.github.io/charts
             chart_version: '0.29.1'
             helm_repo_name: cnpg
             helm_repo_url: https://cloudnative-pg.github.io/charts
-            values_file: postgres/values-operator.yaml
+            values_file: infrastructure/postgres/values-operator.yaml
           - chart: cnpg/cluster
             # renovate: datasource=helm depName=cluster registryUrl=https://cloudnative-pg.github.io/charts
             chart_version: '0.9.0'
             helm_repo_name: cnpg
             helm_repo_url: https://cloudnative-pg.github.io/charts
-            values_file: postgres/values-cluster.yaml
+            values_file: infrastructure/postgres/values-cluster.yaml
           - chart: sealed-secrets/sealed-secrets
             # renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami.github.io/sealed-secrets
             chart_version: '2.20.0'
             helm_repo_name: sealed-secrets
             helm_repo_url: https://bitnami.github.io/sealed-secrets
-            values_file: sealed-secrets/values.yaml
+            values_file: infrastructure/sealed-secrets/values.yaml
     uses: maxmorhardt/workflows/.github/workflows/validate-helm.yml@main
     with:
       repository: ${{ github.repository }}
@@ -72,9 +72,9 @@ jobs:
       manifests: |
         clusters/prod
         clusters/dev
-        cert-manager/manifests
-        system-upgrade-controller/plans.yaml
-        storage/local-path-retain.yaml
+        infrastructure/cert-manager/manifests
+        infrastructure/system-upgrade-controller/plans.yaml
+        infrastructure/storage/local-path-retain.yaml
 
   validate-complete:
     name: Validate Complete

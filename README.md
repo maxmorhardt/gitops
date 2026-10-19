@@ -41,8 +41,8 @@ python main.py up <cluster>
 
 # 2. namespaces, then Argo CD with the cluster's root app
 kubectl config use-context <cluster>
-./namespaces.sh
-./argocd/bootstrap.sh <cluster>
+bootstrap/namespaces.sh
+bootstrap/argocd.sh <cluster>
 
 # 3. seal the cluster's secrets (clusters/SECRETS.md), commit, and Argo CD syncs the rest
 ```
@@ -55,6 +55,7 @@ kubectl config use-context <cluster>
 | `clusters/<cluster>/infra/` | one Application per infrastructure component |
 | `clusters/<cluster>/apps/` | one Application per app, charts from `maxhq/charts` |
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
-| `<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), `SETUP.md` runbook |
+| `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `SETUP.md` runbook |
+| `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
 
 CI renders every chart and validates every manifest on pull requests; it never touches a cluster.

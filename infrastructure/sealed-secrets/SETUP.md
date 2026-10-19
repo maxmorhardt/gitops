@@ -2,7 +2,7 @@
 
 Encrypts secrets so they can live in git. A `SealedSecret` is encrypted with a public cert; only
 the in-cluster controller holds the private key and unseals it into a real `Secret`. Sealed
-manifests live in [clusters/<cluster>/secrets/](../clusters/) and are applied by their own Application
+manifests live in [clusters/<cluster>/secrets/](../../clusters/) and are applied by their own Application
 (`sync-wave: -1`, so the CRD exists before anything creates a `SealedSecret`).
 
 ## Setup

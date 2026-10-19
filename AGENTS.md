@@ -18,9 +18,9 @@
   - `apps/*.yaml` - one `Application` per app: the chart at `maxhq/charts/<name>` on `main`, `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
 - `clusters/SECRETS.md` - every secret each cluster needs, its keys, and where the values come from.
-- `<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `SETUP.md`.
-- `argocd/bootstrap.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
-- `namespaces.sh` - creates the namespaces secrets land in, before Argo CD exists.
+- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `SETUP.md`.
+- `bootstrap/argocd.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
+- `bootstrap/namespaces.sh` - creates the namespaces secrets land in, before Argo CD exists.
 - `.github/workflows/ci.yml` - chart and manifest validation via the shared workflows, fanning into the `Validate Complete` check the rulesets require. **Never applies to the cluster.**
 
 ## Core Principles
@@ -46,17 +46,17 @@
 
 - Make the smallest safe change that solves the requested problem.
 - Change infra behavior by editing the component's `values.yaml`, not the `Application`. Change which chart version runs by editing `targetRevision` in the `Application`.
-- **Never commit a plaintext `Secret`.** Seal it first (see `sealed-secrets/SETUP.md`) and put the SealedSecret in `clusters/<cluster>/secrets/<namespace>/`. Files named `*.example.yaml` are committed templates with placeholder values.
-- Adding a component means creating `<component>/` with `values.yaml` and `SETUP.md`, then adding `clusters/<cluster>/infra/<component>.yaml` for each cluster that runs it. Nothing runs until the `Application` exists.
+- **Never commit a plaintext `Secret`.** Seal it first (see `infrastructure/sealed-secrets/SETUP.md`) and put the SealedSecret in `clusters/<cluster>/secrets/<namespace>/`. Files named `*.example.yaml` are committed templates with placeholder values.
+- Adding a component means creating `infrastructure/<component>/` with `values.yaml` and `SETUP.md`, then adding `clusters/<cluster>/infra/<component>.yaml` for each cluster that runs it. Nothing runs until the `Application` exists.
 - When a values change alters how a component is reached, backed up, or recovered, update its `SETUP.md` in the same commit.
 - Deleting a file is a destructive cluster operation. Confirm the resource is genuinely meant to be removed, not just moved.
 
 ## New Component Checklist
 
-1. Create `<component>/` with `values.yaml` (or raw manifests).
-2. Write `<component>/SETUP.md` covering how it is reached, configured, backed up, and recovered.
+1. Create `infrastructure/<component>/` with `values.yaml` (or raw manifests).
+2. Write `infrastructure/<component>/SETUP.md` covering how it is reached, configured, backed up, and recovered.
 3. Add `clusters/<cluster>/infra/<component>.yaml` with the destination namespace and sync policy.
-4. Add any namespace it needs to `namespaces.sh`.
+4. Add any namespace it needs to `bootstrap/namespaces.sh`.
 5. Seal and commit its secrets under `clusters/<cluster>/secrets/<namespace>/`, and list them in `clusters/SECRETS.md`.
 6. Render and validate locally before pushing.
 
@@ -65,7 +65,7 @@
 Rendering and validating is the test. There is no test suite; a bad merge reconciles straight into the cluster.
 
 ```bash
-helm template <name> <chart> -f <component>/values.yaml   # infra values
+helm template <name> <chart> -f infrastructure/<component>/values.yaml
 kubeconform -strict -summary <manifest>                   # raw manifests
 ```
 
@@ -99,8 +99,8 @@ Before adding a new component or upstream chart, verify:
 On a bare cluster only. Everything after step 3 is reconciled automatically.
 
 1. k3s via `maxhq/infra/k3s` (`python main.py up <cluster>`)
-2. `./namespaces.sh` against the cluster
-3. `argocd/bootstrap.sh <cluster>`
+2. `bootstrap/namespaces.sh` against the cluster
+3. `bootstrap/argocd.sh <cluster>`
 4. Fetch the cluster's sealing cert, seal its secrets from `clusters/SECRETS.md`, commit them
 5. Argo CD syncs the rest; apps retry until their secrets and CRDs exist
 

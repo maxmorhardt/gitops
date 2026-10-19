@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/maxmorhardt/gitops.git
     targetRevision: main
-    path: storage
+    path: infrastructure/storage
   syncPolicy:
     automated:
       prune: false

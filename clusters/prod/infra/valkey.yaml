@@ -17,7 +17,7 @@ spec:
       targetRevision: 0.25.13
       helm:
         valueFiles:
-          - $values/valkey/values.yaml
+          - $values/infrastructure/valkey/values.yaml
     - repoURL: https://github.com/maxmorhardt/gitops.git
       targetRevision: main
       ref: values

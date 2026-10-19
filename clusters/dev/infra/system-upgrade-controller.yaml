@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://github.com/maxmorhardt/gitops.git
     targetRevision: main
-    path: system-upgrade-controller
+    path: infrastructure/system-upgrade-controller
   syncPolicy:
     automated:
       prune: true
