@@ -24,12 +24,10 @@ everything except the origin certificate and the OAuth app credentials noted bel
 
 | namespace / name | type | keys | value |
 | --- | --- | --- | --- |
-| `envoy-gateway-system/maxhq.io-tls` | `kubernetes.io/tls` | `tls.crt`, `tls.key` | Cloudflare origin certificate for `maxhq.io` + `*.maxhq.io` (same for both): `kubectl create secret tls maxhq.io-tls -n envoy-gateway-system --cert=origin.pem --key=origin-priv.pem` |
-| `cloudflared/cloudflared-token` | generic | `token` | `terraform output -json tunnel_tokens` in `maxhq/infra/terraform/cloudflare`, the cluster's entry |
 | `cnpg-database/postgres-superuser` | `kubernetes.io/basic-auth` | `username`, `password` | `postgres`, generated |
 | `cnpg-database/postgres-admin-user` | `kubernetes.io/basic-auth` | `username`, `password` | `maxmorhardt`, generated (owns the `maxhq` database) |
 | `cnpg-database/postgres-dex-user` | `kubernetes.io/basic-auth` | `username`, `password` | `dex`, same password as `DEX_POSTGRES_PASSWORD` |
-| `dex/dex-env` | generic | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `DEX_POSTGRES_PASSWORD`, `ARGOCD_CLIENT_SECRET`, `AGES_CLIENT_SECRET` | Google client can be shared (both callbacks registered); GitHub needs one OAuth app per cluster (`https://login.maxhq.io/callback`, `https://login-dev.maxhq.io/callback`) |
+| `dex/dex-env` | generic | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `DEX_POSTGRES_PASSWORD`, `ARGOCD_CLIENT_SECRET`, `AGES_CLIENT_SECRET` | Google client can be shared (both callbacks registered); GitHub needs one OAuth app per cluster (`https://login.maxhq.io/callback`, `https://login.dev.maxhq.io/callback`) |
 | `argocd/argocd-oidc` | generic | `clientSecret` | same as `ARGOCD_CLIENT_SECRET` |
 | `valkey/valkey-users` | generic | `default`, `squares` | generated; `squares` must hash to the `user squares on #<sha256>` line in `valkey/values.yaml` (`printf %s <password> \| sha256sum`) — update that line if you generate a new one |
 | `kube-system/kured-discord` | generic | `url` | Discord webhook in Shoutrrr form: `discord://<token>@<id>` |
@@ -42,15 +40,23 @@ everything except the origin certificate and the OAuth app credentials noted bel
 
 | namespace / name | type | keys | value |
 | --- | --- | --- | --- |
+| `envoy-gateway-system/maxhq.io-tls` | `kubernetes.io/tls` | `tls.crt`, `tls.key` | Cloudflare origin certificate for `maxhq.io` + `*.maxhq.io`: `kubectl create secret tls maxhq.io-tls -n envoy-gateway-system --cert=origin.pem --key=origin-priv.pem` |
 | `cnpg-database/aws-s3-credentials` | generic | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` | an access key for IAM user `srv-s3` (policy `maxhq-backups-access-policy`) |
 
-Dev has no backups, so no AWS credentials.
+## Dev only
+
+| namespace / name | type | keys | value |
+| --- | --- | --- | --- |
+| `cert-manager/cloudflare-api-token` | generic | `api-token` | Cloudflare token with Zone → DNS: Edit on `maxhq.io`, for DNS-01 |
+| `cert-manager/zerossl-eab` | generic | `hmac` | ZeroSSL → Developer → EAB HMAC key (its key ID goes in `cert-manager/manifests/cluster-issuer.yaml`) |
+
+Dev's TLS certificate is issued by cert-manager into `envoy-gateway-system/dev.maxhq.io-tls`; dev has no backups, so no AWS credentials.
 
 ## squares service env
 
 | key | prod | dev |
 | --- | --- | --- |
-| `ALLOWED_ORIGINS` | `https://squares.maxhq.io` | `https://squares-dev.maxhq.io` |
+| `ALLOWED_ORIGINS` | `https://squares.maxhq.io` | `https://squares.dev.maxhq.io` |
 | `DB_HOST` | `postgres-cluster-rw.cnpg-database.svc.cluster.local` | same |
 | `DB_PORT` / `DB_SSL_MODE` | `5432` / `require` | same |
 | `DB_NAME` / `DB_USER` / `DB_PASSWORD` | `maxhq` / `maxmorhardt` / `postgres-admin-user` password | same, with dev's password |

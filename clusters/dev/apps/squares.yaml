@@ -21,7 +21,7 @@ spec:
       valuesObject:
         route:
           hostnames:
-            - squares-dev.maxhq.io
+            - squares.dev.maxhq.io
   syncPolicy:
     automated:
       prune: true

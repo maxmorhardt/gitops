@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: zerossl
+  annotations:
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  acme:
+    server: https://acme.zerossl.com/v2/DV90
+    privateKeySecretRef:
+      name: zerossl-account
+    externalAccountBinding:
+      # ZeroSSL → Developer → EAB credentials; the HMAC key is the zerossl-eab secret
+      keyID: REPLACE_WITH_ZEROSSL_EAB_KID
+      keySecretRef:
+        name: zerossl-eab
+        key: hmac
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token

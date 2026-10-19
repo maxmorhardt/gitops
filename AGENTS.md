@@ -18,7 +18,7 @@
   - `apps/*.yaml` - one `Application` per app: the chart at `maxhq/charts/<name>` on `main`, `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
 - `clusters/SECRETS.md` - every secret each cluster needs, its keys, and where the values come from.
-- `<component>/` - one directory per infra component (`argocd/`, `cloudflared/`, `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `SETUP.md`.
+- `<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `SETUP.md`.
 - `argocd/bootstrap.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
 - `namespaces.sh` - creates the namespaces secrets land in, before Argo CD exists.
 - `.github/workflows/ci.yml` - chart and manifest validation via the shared workflows, fanning into the `Validate Complete` check the rulesets require. **Never applies to the cluster.**
@@ -88,8 +88,8 @@ Before adding a new component or upstream chart, verify:
 ## Architecture
 
 - **Clusters**: `dev` on Raspberry Pis, `prod` on Contabo VPSes; three k3s servers each on embedded etcd, all node traffic over Tailscale. Provisioned by `maxhq/infra/k3s`.
-- **Ingress**: Cloudflare Tunnel. `cloudflared` holds outbound connections and hands requests to the `maxhq` Envoy Gateway's in-cluster Service; no node opens a port. Prod hostnames are `<app>.maxhq.io`, dev's are `<app>-dev.maxhq.io` (`dev.maxhq.io` for the apex), all under one Cloudflare origin certificate. APIs share `api[-dev].maxhq.io` split by path prefix.
-- **Auth**: Dex at `login.maxhq.io` / `login-dev.maxhq.io`, federating Google and GitHub. Email is the identity.
+- **Ingress**: the `maxhq` Envoy Gateway listens on 443 on every node. Prod hostnames (`<app>.maxhq.io`) are Cloudflare-proxied A records to the prod nodes, with the Cloudflare origin certificate. Dev hostnames (`<app>.dev.maxhq.io`) are DNS-only records to dev's Tailscale IPs, so dev is reachable only on the tailnet, with a ZeroSSL certificate from cert-manager. APIs share `api.maxhq.io` / `api.dev.maxhq.io` split by path prefix.
+- **Auth**: Dex at `login.maxhq.io` / `login.dev.maxhq.io`, federating Google and GitHub. Email is the identity.
 - **Data**: PostgreSQL via CloudNativePG (`postgres-operator` plus `postgres-cluster`; prod backs up to `s3://maxhq-backups/prod/`), Valkey with Sentinel for caches and the squares event streams.
 - **Observability**: the Prometheus Operator CRDs only, so charts' ServiceMonitors and rules apply; metrics and logs are not collected in-cluster.
 - **Node maintenance**: kured coordinates rolling reboots, one node at a time, running `pre-reboot.sh` first. system-upgrade-controller tracks the k3s stable channel.

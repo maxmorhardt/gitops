@@ -15,13 +15,15 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 | | dev | prod |
 | --- | --- | --- |
 | Nodes | Raspberry Pis at home | Contabo VPSes |
-| Hostnames | `dev.maxhq.io`, `<app>-dev.maxhq.io` | `maxhq.io`, `<app>.maxhq.io` |
+| Hostnames | `dev.maxhq.io`, `<app>.dev.maxhq.io` (tailnet only) | `maxhq.io`, `<app>.maxhq.io` |
 | Deploys | whatever is pinned in `clusters/dev/apps/` | release CI bumps `clusters/prod/apps/` |
 
 ## How it fits together
 
-- **Ingress**: Cloudflare Tunnel per cluster → `cloudflared` → the `maxhq` Envoy Gateway → apps by
-  `HTTPRoute`. No node opens a port; node-to-node traffic runs over Tailscale.
+- **Ingress**: the `maxhq` Envoy Gateway on 443 of every node → apps by `HTTPRoute`. Prod's hostnames are
+  Cloudflare-proxied A records to the prod nodes (origin certificate); dev's resolve to dev's Tailscale IPs,
+  so dev exists only on the tailnet (certificate from ZeroSSL via cert-manager). Node-to-node traffic runs
+  over Tailscale.
 - **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
 - **Data**: CloudNativePG for PostgreSQL (prod backs up to S3), Valkey with Sentinel for caches and
   event streams.
@@ -29,7 +31,7 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 - **Upgrades**: kured reboots nodes one at a time; system-upgrade-controller tracks k3s stable.
 
 Outside the clusters, the [maxhq](https://github.com/maxmorhardt/maxhq) monorepo holds the app
-charts, the k3s bootstrap, and Terraform for DNS, tunnels, backups, and GitHub settings.
+charts, the k3s bootstrap, and Terraform for DNS, backups, and GitHub settings.
 
 ## Bring up a cluster
 

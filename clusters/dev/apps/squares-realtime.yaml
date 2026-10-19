@@ -21,10 +21,10 @@ spec:
       valuesObject:
         route:
           hostnames:
-            - api-dev.maxhq.io
+            - api.dev.maxhq.io
         auth:
-          issuer: https://login-dev.maxhq.io
-          jwksURI: https://login-dev.maxhq.io/keys
+          issuer: https://login.dev.maxhq.io
+          jwksURI: https://login.dev.maxhq.io/keys
   syncPolicy:
     automated:
       prune: true

@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cloudflared
+  name: cert-manager-config
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -9,16 +9,12 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: cloudflared
+    namespace: cert-manager
   source:
     repoURL: https://github.com/maxmorhardt/gitops.git
     targetRevision: main
-    path: cloudflared
-    directory:
-      exclude: '*.md'
+    path: cert-manager/manifests
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true
