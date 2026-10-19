@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# namespaces SealedSecrets land in, created before Argo CD syncs them
 set -euo pipefail
 
 namespaces=(
