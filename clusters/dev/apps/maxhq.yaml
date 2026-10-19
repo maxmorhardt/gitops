@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: maxhq
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: maxhq
+  source:
+    repoURL: https://github.com/maxmorhardt/maxhq.git
+    path: charts/maxhq
+    targetRevision: main
+    helm:
+      parameters:
+        - name: image.tag
+          value: 3.1.0
+      valuesObject:
+        route:
+          hostnames:
+            - dev.maxhq.io
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

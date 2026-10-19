@@ -1,0 +1,3 @@
+# dev data is disposable: no backups, so no S3 credentials in the cluster
+backups:
+  enabled: false

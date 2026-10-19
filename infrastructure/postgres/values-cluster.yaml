@@ -1,0 +1,93 @@
+type: postgresql
+
+version:
+  postgresql: '17'
+
+mode: standalone
+
+cluster:
+  instances: 2
+  imagePullPolicy: Always
+  storage:
+    size: 20Gi
+    storageClass: local-path-retain
+  walStorage:
+    enabled: false
+  resources:
+    limits:
+      cpu: 1
+      memory: 3Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  primaryUpdateMethod: switchover
+  primaryUpdateStrategy: unsupervised
+  logLevel: 'info'
+  affinity:
+    topologyKey: kubernetes.io/hostname
+  enableSuperuserAccess: true
+  superuserSecret: 'postgres-superuser'
+  enablePDB: true
+  roles:
+    - name: dex
+      ensure: present
+      login: true
+      passwordSecret:
+        name: postgres-dex-user
+  monitoring:
+    enabled: true
+    podMonitor:
+      enabled: true
+    prometheusRule:
+      enabled: true
+  postgresql:
+    parameters:
+      max_connections: '300'
+      shared_buffers: '512MB'
+      effective_cache_size: '1536MB'
+      maintenance_work_mem: '128MB'
+      checkpoint_completion_target: '0.9'
+      wal_buffers: '16MB'
+      default_statistics_target: '100'
+      random_page_cost: '1.1'
+      effective_io_concurrency: '200'
+      work_mem: '3495kB'
+  initdb:
+    database: maxhq
+    owner: maxmorhardt
+    secret:
+      name: postgres-admin-user
+    encoding: UTF8
+
+backups:
+  enabled: true
+  destinationPath: 's3://maxhq-backups/prod/'
+  provider: s3
+  s3:
+    region: us-east-1
+  secret:
+    create: false
+    name: aws-s3-credentials
+  wal:
+    compression: gzip
+    encryption: AES256
+    maxParallel: 1
+  data:
+    compression: gzip
+    encryption: AES256
+    jobs: 2
+  scheduledBackups:
+    - name: daily-backup
+      schedule: '0 0 0 * * *'
+      backupOwnerReference: self
+      method: barmanObjectStore
+  retentionPolicy: '30d'
+
+imageCatalog:
+  create: false
+
+poolers: []
+
+databases:
+  - name: dex
+    owner: dex

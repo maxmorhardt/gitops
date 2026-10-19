@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgres-cluster
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd.argoproj.io/sync-wave: '1'
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cnpg-database
+  sources:
+    - repoURL: https://cloudnative-pg.github.io/charts
+      chart: cluster
+      # renovate: datasource=helm depName=cluster registryUrl=https://cloudnative-pg.github.io/charts
+      targetRevision: 0.9.0
+      helm:
+        valueFiles:
+          # swap to values-cluster-recovery.yaml or values-cluster-hibernate.yaml to change cluster mode
+          - $values/infrastructure/postgres/values-cluster.yaml
+    - repoURL: https://github.com/maxmorhardt/gitops.git
+      targetRevision: main
+      ref: values
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

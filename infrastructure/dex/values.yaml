@@ -1,0 +1,150 @@
+replicaCount: 2
+
+envFrom:
+  - secretRef:
+      name: dex-env
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+volumes:
+  - name: tmp
+    emptyDir: {}
+
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: dex
+
+httpRoute:
+  enabled: true
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: maxhq
+      namespace: envoy-gateway-system
+  hostnames:
+    - login.maxhq.io
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
+config:
+  issuer: https://login.maxhq.io
+
+  expiry:
+    idTokens: "12h"
+    refreshTokens:
+      validIfNotUsedFor: "720h"
+      absoluteLifetime: "2160h"
+
+  web:
+    allowedOrigins:
+      - https://squares.maxhq.io
+      - https://olympics.maxhq.io
+      - https://ages.maxhq.io
+      - https://argocd.maxhq.io
+      - http://localhost:3000
+
+  storage:
+    type: postgres
+    config:
+      host: postgres-cluster-rw.cnpg-database.svc.cluster.local
+      port: 5432
+      database: dex
+      user: dex
+      password: $DEX_POSTGRES_PASSWORD
+      ssl:
+        mode: require
+
+  oauth2:
+    skipApprovalScreen: true
+
+  enablePasswordDB: false
+
+  connectors:
+    - type: google
+      id: google
+      name: Google
+      config:
+        clientID: $GOOGLE_CLIENT_ID
+        clientSecret: $GOOGLE_CLIENT_SECRET
+        redirectURI: https://login.maxhq.io/callback
+        promptType: ""
+
+    - type: github
+      id: github
+      name: GitHub
+      config:
+        clientID: $GITHUB_CLIENT_ID
+        clientSecret: $GITHUB_CLIENT_SECRET
+        redirectURI: https://login.maxhq.io/callback
+        loadAllGroups: false
+
+  staticClients:
+    - id: squares
+      name: Squares
+      public: true
+      trustedPeers:
+        - squares-mobile
+      redirectURIs:
+        - https://squares.maxhq.io/auth/callback
+        - http://localhost:3000/auth/callback
+
+    - id: squares-mobile
+      name: Squares
+      public: true
+      redirectURIs:
+        - https://squares.maxhq.io/auth/callback
+        - http://localhost:3000/auth/callback
+
+    - id: olympics
+      name: Olympics
+      public: true
+      redirectURIs:
+        - https://olympics.maxhq.io/auth/callback
+        - http://localhost:3000/auth/callback
+
+    - id: ages
+      name: Ages
+      secretEnv: AGES_CLIENT_SECRET
+      redirectURIs:
+        - https://ages.maxhq.io/oauth2/callback
+
+    - id: argocd
+      name: Argo CD
+      secretEnv: ARGOCD_CLIENT_SECRET
+      redirectURIs:
+        - https://argocd.maxhq.io/auth/callback
+
+    - id: argocd-cli
+      name: Argo CD CLI
+      public: true
+      redirectURIs:
+        - http://localhost:8085/auth/callback

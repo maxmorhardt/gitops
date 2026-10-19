@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: envoy-gateway
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: envoy-gateway-system
+  sources:
+    - repoURL: docker.io/envoyproxy
+      chart: gateway-helm
+      # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm
+      targetRevision: 1.9.2
+      helm:
+        valueFiles:
+          - $values/infrastructure/envoy-gateway/values.yaml
+    - repoURL: https://github.com/maxmorhardt/gitops.git
+      targetRevision: main
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

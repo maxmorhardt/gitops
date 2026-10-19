@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-config
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  source:
+    repoURL: https://github.com/maxmorhardt/gitops.git
+    targetRevision: main
+    path: infrastructure/cert-manager/manifests
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gateway
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: envoy-gateway-system
+  source:
+    repoURL: https://github.com/maxmorhardt/maxhq.git
+    path: charts/gateway
+    targetRevision: main
+    helm:
+      valuesObject:
+        domain: dev.maxhq.io
+        tls:
+          secretName: dev.maxhq.io-tls
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
