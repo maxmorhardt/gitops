@@ -16,7 +16,7 @@ config:
     - appendfsync always
     - min-replicas-to-write 1
     - min-replicas-max-lag 10
-    - "user squares on #d85e6a7a3d22aadd139137e12828b655cb0e9d1a71e9c62008610f59b21a1d1e ~squares:* resetchannels +@all -@dangerous"
+    - "user squares on #49b941550cdca8679ca6ef88187bcf0d1310e8b6c931039f019b44eed1cb84d8 ~squares:* resetchannels +@all -@dangerous"
 
 resources:
   requests:
