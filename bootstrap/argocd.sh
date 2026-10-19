@@ -7,6 +7,14 @@ cd "$(dirname "$0")/.."
 values=(--values infrastructure/argocd/values.yaml)
 [ -f "infrastructure/argocd/values-$cluster.yaml" ] && values+=(--values "infrastructure/argocd/values-$cluster.yaml")
 
+# install crds first
+if ! kubectl get crd httproutes.gateway.networking.k8s.io servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
+	for component in controller repoServer server redis; do
+		values+=(--set "$component.metrics.serviceMonitor.enabled=false")
+	done
+	values+=(--set server.httproute.enabled=false)
+fi
+
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
 

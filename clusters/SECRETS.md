@@ -1,5 +1,7 @@
 # Secrets per cluster
 
+`bootstrap/seal-secrets.sh <cluster> <env-file>` seals all of them from one env file kept outside the repo.
+
 Every value here is sealed with the cluster's own key into `clusters/<cluster>/secrets/<namespace>/<name>.yaml`
 (see [infrastructure/sealed-secrets/SETUP.md](../infrastructure/sealed-secrets/SETUP.md)). Fetch the cert once Argo CD has synced sealed-secrets:
 

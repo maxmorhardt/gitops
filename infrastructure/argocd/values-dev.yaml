@@ -2,6 +2,9 @@ global:
   domain: argocd.dev.maxhq.io
 
 configs:
+  params:
+    controller.repo.server.timeout.seconds: 180
+    server.repo.server.timeout.seconds: 180
   cm:
     oidc.config: |
       name: maxhq
