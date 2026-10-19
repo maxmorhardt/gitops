@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# seals every secret a cluster needs (clusters/SECRETS.md) from an env file kept outside the repo
+# seals every secret a cluster needs
 set -euo pipefail
 
 cluster="${1:?usage: bootstrap/seal-secrets.sh <dev|prod> <env-file>}"
