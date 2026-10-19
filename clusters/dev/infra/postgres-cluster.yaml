@@ -19,7 +19,7 @@ spec:
       targetRevision: 0.9.0
       helm:
         valueFiles:
-          # swap to values-cluster-recovery.yaml or values-cluster-hibernate.yaml to change cluster mode
+          # add values-cluster-recovery.yaml or values-cluster-hibernate.yaml last to change cluster mode
           - $values/infrastructure/postgres/values-cluster.yaml
           - $values/infrastructure/postgres/values-cluster-dev.yaml
     - repoURL: https://github.com/maxmorhardt/gitops.git

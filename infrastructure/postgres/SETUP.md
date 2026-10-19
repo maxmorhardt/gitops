@@ -17,13 +17,14 @@ Three secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-d
 
 ## Recovery
 
-Cluster mode is the `valueFiles` entry in
+Cluster modes are overlays added after `values-cluster.yaml` in the `valueFiles` of
 [clusters/prod/infra/postgres-cluster.yaml](../../clusters/prod/infra/postgres-cluster.yaml):
 
-1. Point it at `values-cluster-recovery.yaml`, merge, wait for all 3 instances ready.
-2. Point it back at `values-cluster.yaml` for standalone with backups enabled.
+1. Delete the `postgres-cluster` Cluster (recovery only runs when a cluster is created), add
+   `values-cluster-recovery.yaml`, merge, and wait for every instance to be ready.
+2. Remove the overlay so the cluster runs standalone with backups enabled again.
 
-`values-cluster-hibernate.yaml` scales the cluster down without deleting it.
+`values-cluster-hibernate.yaml` shuts the cluster down and keeps its volumes.
 
 ## Notes
 

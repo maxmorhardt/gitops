@@ -29,14 +29,20 @@ everything except the origin certificate and the OAuth app credentials noted bel
 | `cnpg-database/postgres-superuser` | `kubernetes.io/basic-auth` | `username`, `password` | `postgres`, generated |
 | `cnpg-database/postgres-admin-user` | `kubernetes.io/basic-auth` | `username`, `password` | `maxmorhardt`, generated (owns the `maxhq` database) |
 | `cnpg-database/postgres-dex-user` | `kubernetes.io/basic-auth` | `username`, `password` | `dex`, same password as `DEX_POSTGRES_PASSWORD` |
+| `cnpg-database/postgres-olympics-user` | `kubernetes.io/basic-auth` | `username`, `password` | `olympics`, generated (owns the `olympics` database) |
 | `dex/dex-env` | generic | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `DEX_POSTGRES_PASSWORD`, `ARGOCD_CLIENT_SECRET`, `AGES_CLIENT_SECRET` | Google client can be shared (both callbacks registered); GitHub needs one OAuth app per cluster (`https://login.maxhq.io/callback`, `https://login.dev.maxhq.io/callback`) |
 | `argocd/argocd-oidc` | generic | `clientSecret` | same as `ARGOCD_CLIENT_SECRET` |
+| `argocd/repo-maxhq-private` | generic, label `argocd.argoproj.io/secret-type=repository` | `type`, `url`, `sshPrivateKey` | read-only deploy key on `maxhq-private`, one per cluster (`argocd-dev`, `argocd-prod`) |
 | `valkey/valkey-users` | generic | `default`, `squares` | generated; `squares` must hash to the `user squares on #<sha256>` line in `infrastructure/valkey/values.yaml` (`printf %s <password> \| sha256sum`) — update that line if you generate a new one |
 | `kube-system/kured-discord` | generic | `url` | Discord webhook in Shoutrrr form: `discord://<token>@<id>` |
 | `squares/squares-contests-env` | generic | see below | |
 | `squares/squares-games-env` | generic | see below | |
 | `squares/squares-accounts-env` | generic | see below | |
 | `squares/squares-realtime-env` | generic | `ALLOWED_ORIGINS`, `INTERNAL_API_TOKEN`, `REDIS_URL` | |
+| `olympics/olympics-api-env` | generic | `DB_*` (`olympics` database and user), `OIDC_CLIENT_ID`, `OIDC_ISSUER`, `ALLOWED_ORIGINS`, `ADMIN_EMAILS` | |
+| `ages/docker-secret` | `kubernetes.io/dockerconfigjson` | `.dockerconfigjson` | Docker Hub read token for the private `maxmorhardt/ages` image |
+| `ages/ages-oidc-client` | generic | `client-secret` | same as `AGES_CLIENT_SECRET` |
+| `ages/ages-email-env` | generic | `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `FROM_EMAIL`, `TO_EMAILS` | Zoho, as for squares accounts |
 
 ## Prod only
 
