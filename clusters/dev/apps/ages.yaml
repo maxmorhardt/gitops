@@ -11,9 +11,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: ages
   source:
-    repoURL: git@github.com:maxmorhardt/maxhq-private.git
-    path: apps/ages/charts/ages
-    targetRevision: main
+    repoURL: ghcr.io/maxmorhardt/charts
+    chart: ages
+    targetRevision: 0.0.0
     helm:
       parameters:
         - name: image.tag

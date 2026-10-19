@@ -34,7 +34,7 @@ Generate passwords and tokens with `openssl rand -hex 24`.
 | `cnpg-database/postgres-olympics-user` | `kubernetes.io/basic-auth` | `username`, `password` | `olympics`, generated (owns the `olympics` database) |
 | `dex/dex-env` | generic | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `DEX_POSTGRES_PASSWORD`, `ARGOCD_CLIENT_SECRET`, `AGES_CLIENT_SECRET` | Google client can be shared (both callbacks registered); GitHub needs one OAuth app per cluster (`https://login.maxhq.io/callback`, `https://login.dev.maxhq.io/callback`) |
 | `argocd/argocd-oidc` | generic | `clientSecret` | same as `ARGOCD_CLIENT_SECRET` |
-| `argocd/repo-maxhq-private` | generic, label `argocd.argoproj.io/secret-type=repository` | `type`, `url`, `sshPrivateKey` | read-only deploy key on `maxhq-private`, one per cluster (`argocd-dev`, `argocd-prod`) |
+| `argocd/ghcr-charts` | generic, label `argocd.argoproj.io/secret-type=repository` | `type` (`helm`), `name`, `url` (`ghcr.io/maxmorhardt/charts`), `enableOCI`, `username`, `password` | classic GitHub token with only `read:packages`, for the private maxhq-private charts |
 | `valkey/valkey-users` | generic | `default`, `squares` | generated; `squares` must hash to the `user squares on #<sha256>` line in `infrastructure/valkey/values.yaml` (`printf %s <password> \| sha256sum`) — update that line if you generate a new one |
 | `kube-system/kured-discord` | generic | `url` | Discord webhook in Shoutrrr form: `discord://<token>@<id>` |
 | `squares/squares-contests-env` | generic | see below | |
