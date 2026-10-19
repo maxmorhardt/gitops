@@ -34,6 +34,11 @@ cluster:
       login: true
       passwordSecret:
         name: postgres-dex-user
+    - name: olympics
+      ensure: present
+      login: true
+      passwordSecret:
+        name: postgres-olympics-user
   monitoring:
     enabled: true
     podMonitor:
@@ -91,3 +96,5 @@ poolers: []
 databases:
   - name: dex
     owner: dex
+  - name: olympics
+    owner: olympics

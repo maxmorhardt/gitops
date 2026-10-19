@@ -2,6 +2,7 @@
 set -euo pipefail
 
 namespaces=(
+  ages
   argocd
   cert-manager
   cnpg-database
@@ -9,6 +10,7 @@ namespaces=(
   envoy-gateway-system
   kube-system
   maxhq
+  olympics
   squares
   valkey
 )

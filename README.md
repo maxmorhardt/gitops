@@ -16,7 +16,7 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 | --- | --- | --- |
 | Nodes | Raspberry Pis at home | Contabo VPSes |
 | Hostnames | `dev.maxhq.io`, `<app>.dev.maxhq.io` (tailnet only) | `maxhq.io`, `<app>.maxhq.io` |
-| Deploys | whatever is pinned in `clusters/dev/apps/` | release CI bumps `clusters/prod/apps/` |
+| Deploys | every merge to an app's `main` | every release, after approval |
 
 ## How it fits together
 
@@ -53,7 +53,7 @@ bootstrap/argocd.sh <cluster>
 | --- | --- |
 | `clusters/<cluster>/root.yaml` | app-of-apps for the cluster |
 | `clusters/<cluster>/infra/` | one Application per infrastructure component |
-| `clusters/<cluster>/apps/` | one Application per app, charts from `maxhq/charts` |
+| `clusters/<cluster>/apps/` | one Application per app, charts from `maxhq/charts` or the private `maxhq-private` repo |
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
 | `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `SETUP.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
