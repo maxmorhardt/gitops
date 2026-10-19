@@ -12,4 +12,4 @@ spec:
     - '*.dev.maxhq.io'
   issuerRef:
     kind: ClusterIssuer
-    name: zerossl
+    name: letsencrypt

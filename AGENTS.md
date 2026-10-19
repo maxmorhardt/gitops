@@ -88,7 +88,7 @@ Before adding a new component or upstream chart, verify:
 ## Architecture
 
 - **Clusters**: `dev` on Raspberry Pis, `prod` on Contabo VPSes; three k3s servers each on embedded etcd, all node traffic over Tailscale. Provisioned by `maxhq/infra/k3s`.
-- **Ingress**: the `maxhq` Envoy Gateway listens on 443 on every node. Prod hostnames (`<app>.maxhq.io`) are Cloudflare-proxied A records to the prod nodes, with the Cloudflare origin certificate. Dev hostnames (`<app>.dev.maxhq.io`) are DNS-only records to dev's Tailscale IPs, so dev is reachable only on the tailnet, with a ZeroSSL certificate from cert-manager. APIs share `api.maxhq.io` / `api.dev.maxhq.io` split by path prefix.
+- **Ingress**: the `maxhq` Envoy Gateway listens on 443 on every node. Prod hostnames (`<app>.maxhq.io`) are Cloudflare-proxied A records to the prod nodes, with the Cloudflare origin certificate. Dev hostnames (`<app>.dev.maxhq.io`) are DNS-only records to dev's Tailscale IPs, so dev is reachable only on the tailnet, with a Let's Encrypt certificate from cert-manager. APIs share `api.maxhq.io` / `api.dev.maxhq.io` split by path prefix.
 - **Auth**: Dex at `login.maxhq.io` / `login.dev.maxhq.io`, federating Google and GitHub. Email is the identity.
 - **Data**: PostgreSQL via CloudNativePG (`postgres-operator` plus `postgres-cluster`; prod backs up to `s3://maxhq-backups/prod/`), Valkey with Sentinel for caches and the squares event streams.
 - **Observability**: the Prometheus Operator CRDs only, so charts' ServiceMonitors and rules apply; metrics and logs are not collected in-cluster.

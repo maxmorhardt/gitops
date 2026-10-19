@@ -48,7 +48,6 @@ everything except the origin certificate and the OAuth app credentials noted bel
 | namespace / name | type | keys | value |
 | --- | --- | --- | --- |
 | `cert-manager/cloudflare-api-token` | generic | `api-token` | Cloudflare token with Zone → DNS: Edit on `maxhq.io`, for DNS-01 |
-| `cert-manager/zerossl-eab` | generic | `hmac` | ZeroSSL → Developer → EAB HMAC key (its key ID goes in `infrastructure/cert-manager/manifests/cluster-issuer.yaml`) |
 
 Dev's TLS certificate is issued by cert-manager into `envoy-gateway-system/dev.maxhq.io-tls`; dev has no backups, so no AWS credentials.
 
