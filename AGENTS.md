@@ -15,7 +15,7 @@
 - `clusters/<cluster>/` - one Argo CD instance per cluster (`dev`, `prod`), each reconciling only its own directory.
   - `root.yaml` - the app-of-apps for the cluster.
   - `infra/*.yaml` - one `Application` per infrastructure component, pointing at that component's directory here or at an upstream chart with its values from here.
-  - `apps/*.yaml` - one `Application` per app: the chart at `maxhq/charts/<name>` on `main`, `image.tag` as a Helm parameter, and dev's hostname overrides inline.
+  - `apps/*.yaml` - one `Application` per app: the chart from `oci://ghcr.io/maxmorhardt/charts` at a pinned `targetRevision` (public charts from maxhq, private ones from maxhq-private), `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
 - `clusters/SECRETS.md` - every secret each cluster needs, its keys, and where the values come from.
 - `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `SETUP.md`.

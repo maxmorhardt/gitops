@@ -4,7 +4,7 @@ GitOps control plane per cluster, at `argocd.maxhq.io` (prod) and `argocd.dev.ma
 Every workload is an `Application` reconciled from this repo; CI only commits versions and holds
 no kubeconfig. Adding anything is a new file in `clusters/<cluster>/infra/` (upstream charts,
 values at `infrastructure/<component>/values.yaml`) or `clusters/<cluster>/apps/` (charts from
-`maxhq/charts`, image tag pinned by CI). The cluster's `root.yaml` app-of-apps picks it up within
+`ghcr.io/maxmorhardt/charts`, chart version and image tag pinned by CI). The cluster's `root.yaml` app-of-apps picks it up within
 ~3 min. Any non-`Application` yaml under `clusters/<cluster>/` **will** be applied to the cluster.
 
 ## Bootstrap

@@ -11,9 +11,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: squares
   source:
-    repoURL: https://github.com/maxmorhardt/maxhq.git
-    path: charts/squares-realtime
-    targetRevision: main
+    repoURL: ghcr.io/maxmorhardt/charts
+    chart: squares-realtime
+    targetRevision: 1.1.1
     helm:
       parameters:
         - name: image.tag
