@@ -19,7 +19,7 @@ writes plain YAML to the gitignored `.secrets/prod/`; edit it, then `scripts/sec
 flag, and `scripts/secrets.sh clean`. Seal only what you changed: sealing re-encrypts, so every file sealed
 shows a diff.
 
-Decryption uses `~/.config/maxhq/sealing-keys/<cluster>.yaml` (outside the repo; override with `SEALING_KEYS_DIR`; `scripts/secrets.sh backup-key <cluster>` saves it)
+Decryption uses `scripts/keys/<cluster>.yaml` (gitignored; `scripts/secrets.sh backup-key <cluster>` saves it)
 when present, and the live cluster otherwise.
 
 Generate passwords and tokens with `openssl rand -hex 24`.

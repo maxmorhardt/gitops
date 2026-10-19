@@ -42,7 +42,7 @@ python main.py up <cluster>
 # 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/SETUP.md)
 kubectl config use-context <cluster>
 bootstrap/namespaces.sh
-kubectl apply -f ~/.config/maxhq/sealing-keys/<cluster>.yaml
+kubectl apply -f scripts/keys/<cluster>.yaml
 
 # 3. Argo CD with the cluster's root app; it syncs everything else, committed secrets included
 bootstrap/argocd.sh <cluster>
