@@ -17,7 +17,7 @@ spec:
     helm:
       parameters:
         - name: image.tag
-          value: 4.1.0
+          value: 5.0.0
       valuesObject:
         route:
           hostnames:
