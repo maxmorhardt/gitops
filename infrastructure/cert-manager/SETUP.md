@@ -15,9 +15,3 @@ The gateway's dev listeners read the result from `dev.maxhq.io-tls` in `envoy-ga
 - **Cloudflare**: an API token with Zone → DNS: Edit on `maxhq.io`, as the
   `cert-manager/cloudflare-api-token` secret (key `api-token`).
 
-## Check
-
-```bash
-kubectl get certificate -n envoy-gateway-system dev-maxhq-io    # READY True
-kubectl describe challenge -A                                    # while issuing
-```

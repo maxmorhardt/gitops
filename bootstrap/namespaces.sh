@@ -2,6 +2,18 @@
 # namespaces SealedSecrets land in, created before Argo CD syncs them
 set -euo pipefail
 
-for ns in argocd cert-manager cnpg-database dex envoy-gateway-system kube-system maxhq squares valkey; do
-  kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f -
+namespaces=(
+  argocd
+  cert-manager
+  cnpg-database
+  dex
+  envoy-gateway-system
+  kube-system
+  maxhq
+  squares
+  valkey
+)
+
+for namespace in "${namespaces[@]}"; do
+  kubectl create namespace "$namespace" --dry-run=client -o yaml | kubectl apply -f -
 done
