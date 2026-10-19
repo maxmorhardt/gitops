@@ -16,9 +16,10 @@ Key renewal is off (`keyrenewperiod: '0'`), so each cluster keeps the one key it
 ## Back up the sealing key
 
 Lose a cluster's private key and **every sealed manifest for it becomes undecryptable**; the only way
-back is reissuing each value. `scripts/secrets.sh backup-key <cluster>` saves it to the gitignored
-`scripts/keys/<cluster>.yaml`, where the script also uses it to decrypt without the cluster. Keep a copy
-outside this repo too (a password manager attachment works), since deleting the clone deletes the key.
+back is reissuing each value. `scripts/secrets.sh backup-key <cluster>` saves it to
+`~/.config/maxhq/sealing-keys/<cluster>.yaml`, outside the repo so it can never be committed; the script
+also uses it to decrypt without the cluster. Keep a second copy off this machine (a password manager
+attachment works).
 
 ## Rebuild a cluster with its key
 
@@ -27,7 +28,7 @@ generating a new one and every committed SealedSecret keeps working:
 
 ```bash
 bootstrap/namespaces.sh
-kubectl --context <cluster> apply -f scripts/keys/<cluster>.yaml
+kubectl --context <cluster> apply -f ~/.config/maxhq/sealing-keys/<cluster>.yaml
 ```
 
 To give a cluster a new key instead: unseal everything first while the old key still works

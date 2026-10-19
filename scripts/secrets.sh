@@ -17,12 +17,13 @@ usage:
   new         create and seal a secret that doesn't exist yet
   unseal      write secrets as plain YAML to .secrets/<cluster>/<namespace>/<name>.yaml to edit
   seal        encrypt edited files in .secrets/<cluster>/ back into clusters/<cluster>/secrets/
-  backup-key  save the cluster's sealing key to scripts/keys/<cluster>.yaml
+  backup-key  save the cluster's sealing key to $SEALING_KEYS_DIR/<cluster>.yaml
   clean       delete .secrets/
 
 A bare KEY= prompts for the value without echoing it, keeping it out of shell history;
 KEY=@path reads the value from a file.
-Decryption uses scripts/keys/<cluster>.yaml when present, otherwise the live cluster.
+Decryption uses $SEALING_KEYS_DIR/<cluster>.yaml when present, otherwise the live cluster.
+SEALING_KEYS_DIR defaults to ~/.config/maxhq/sealing-keys, outside the repository.
 EOF
 	exit 1
 }
@@ -47,7 +48,7 @@ shift
 sealed_dir="clusters/$cluster/secrets"
 plain_dir="$plain_root/$cluster"
 cert="clusters/$cluster/pub-cert.pem"
-key="scripts/keys/$cluster.yaml"
+key="${SEALING_KEYS_DIR:-$HOME/.config/maxhq/sealing-keys}/$cluster.yaml"
 
 ensure_cert() {
 	if [ ! -f "$cert" ]; then
