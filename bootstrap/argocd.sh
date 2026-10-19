@@ -7,8 +7,7 @@ cd "$(dirname "$0")/.."
 values=(--values infrastructure/argocd/values.yaml)
 [ -f "infrastructure/argocd/values-$cluster.yaml" ] && values+=(--values "infrastructure/argocd/values-$cluster.yaml")
 
-# a bare cluster has no Gateway API or Prometheus CRDs yet; Argo CD installs them, then its own
-# Application re-applies the full values
+# install crds first
 if ! kubectl get crd httproutes.gateway.networking.k8s.io servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
 	for component in controller repoServer server redis; do
 		values+=(--set "$component.metrics.serviceMonitor.enabled=false")

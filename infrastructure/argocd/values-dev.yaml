@@ -2,6 +2,10 @@ global:
   domain: argocd.dev.maxhq.io
 
 configs:
+  # the Pis render large charts slower than the 60s default
+  params:
+    controller.repo.server.timeout.seconds: 180
+    server.repo.server.timeout.seconds: 180
   cm:
     oidc.config: |
       name: maxhq
