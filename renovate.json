@@ -30,7 +30,7 @@
   ],
   "argocd": {
     "description": "infra Application chart versions; apps/ is left alone, CI commits those",
-    "managerFilePatterns": ["/^argocd/infra/.*\\.ya?ml$/"]
+    "managerFilePatterns": ["/^clusters/[^/]+/infra/.*\\.ya?ml$/"]
   },
   "packageRules": [
     {

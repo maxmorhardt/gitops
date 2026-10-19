@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: squares
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: squares
+  source:
+    repoURL: https://github.com/maxmorhardt/maxhq.git
+    path: charts/squares
+    targetRevision: main
+    helm:
+      parameters:
+        - name: image.tag
+          value: 4.1.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

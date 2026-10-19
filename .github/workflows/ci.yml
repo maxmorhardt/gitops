@@ -10,12 +10,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - chart: grafana/alloy
-            # renovate: datasource=helm depName=alloy registryUrl=https://grafana.github.io/helm-charts
-            chart_version: '1.13.1'
-            helm_repo_name: grafana
-            helm_repo_url: https://grafana.github.io/helm-charts
-            values_file: alloy/values.yaml
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
             chart_version: '10.10.3'
@@ -38,12 +32,6 @@ jobs:
             helm_repo_name: kubereboot
             helm_repo_url: https://kubereboot.github.io/charts
             values_file: kured/values.yaml
-          - chart: grafana/loki
-            # renovate: datasource=helm depName=loki registryUrl=https://grafana.github.io/helm-charts
-            chart_version: '7.3.0'
-            helm_repo_name: grafana
-            helm_repo_url: https://grafana.github.io/helm-charts
-            values_file: loki/values.yaml
           - chart: oci://docker.io/cloudpirates/valkey
             # renovate: datasource=docker depName=docker.io/cloudpirates/valkey
             chart_version: '0.25.13'
@@ -60,12 +48,6 @@ jobs:
             helm_repo_name: cnpg
             helm_repo_url: https://cloudnative-pg.github.io/charts
             values_file: postgres/values-cluster.yaml
-          - chart: prometheus-community/kube-prometheus-stack
-            # renovate: datasource=helm depName=kube-prometheus-stack registryUrl=https://prometheus-community.github.io/helm-charts
-            chart_version: '92.3.1'
-            helm_repo_name: prometheus-community
-            helm_repo_url: https://prometheus-community.github.io/helm-charts
-            values_file: prometheus-stack/values.yaml
           - chart: sealed-secrets/sealed-secrets
             # renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami.github.io/sealed-secrets
             chart_version: '2.20.0'
@@ -88,9 +70,9 @@ jobs:
     with:
       repository: ${{ github.repository }}
       manifests: |
-        argocd/root.yaml
-        argocd/infra
-        argocd/apps
+        clusters/prod
+        clusters/dev
+        cloudflared/deployment.yaml
         system-upgrade-controller/plans.yaml
         storage/local-path-retain.yaml
 

@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+cluster="${1:?usage: ./bootstrap.sh <dev|prod>}"
 cd "$(dirname "$0")"
+
+values=(--values values.yaml)
+[ -f "values-$cluster.yaml" ] && values+=(--values "values-$cluster.yaml")
 
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
@@ -14,9 +18,9 @@ helm upgrade argocd argo/argo-cd \
 	--timeout 10m \
 	--namespace argocd \
 	--create-namespace \
-	--values values.yaml
+	"${values[@]}"
 
-kubectl apply -f root.yaml
+kubectl apply -f "../clusters/$cluster/root.yaml"
 
 echo
 echo "admin password:"

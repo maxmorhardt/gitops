@@ -45,10 +45,10 @@ httpRoute:
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
-      name: maxstash
+      name: maxhq
       namespace: envoy-gateway-system
   hostnames:
-    - login.maxstash.io
+    - login.maxhq.io
   rules:
     - matches:
         - path:
@@ -56,7 +56,7 @@ httpRoute:
             value: /
 
 config:
-  issuer: https://login.maxstash.io
+  issuer: https://login.maxhq.io
 
   expiry:
     idTokens: "12h"
@@ -66,11 +66,10 @@ config:
 
   web:
     allowedOrigins:
-      - https://squares.maxstash.io
-      - https://olympics.maxstash.io
-      - https://ages.maxstash.io
-      - https://grafana.maxstash.io
-      - https://argocd.maxstash.io
+      - https://squares.maxhq.io
+      - https://olympics.maxhq.io
+      - https://ages.maxhq.io
+      - https://argocd.maxhq.io
       - http://localhost:3000
 
   storage:
@@ -96,7 +95,7 @@ config:
       config:
         clientID: $GOOGLE_CLIENT_ID
         clientSecret: $GOOGLE_CLIENT_SECRET
-        redirectURI: https://login.maxstash.io/callback
+        redirectURI: https://login.maxhq.io/callback
         promptType: ""
 
     - type: github
@@ -105,7 +104,7 @@ config:
       config:
         clientID: $GITHUB_CLIENT_ID
         clientSecret: $GITHUB_CLIENT_SECRET
-        redirectURI: https://login.maxstash.io/callback
+        redirectURI: https://login.maxhq.io/callback
         loadAllGroups: false
 
   staticClients:
@@ -115,40 +114,34 @@ config:
       trustedPeers:
         - squares-mobile
       redirectURIs:
-        - https://squares.maxstash.io/auth/callback
+        - https://squares.maxhq.io/auth/callback
         - http://localhost:3000/auth/callback
 
     - id: squares-mobile
       name: Squares
       public: true
       redirectURIs:
-        - https://squares.maxstash.io/auth/callback
+        - https://squares.maxhq.io/auth/callback
         - http://localhost:3000/auth/callback
 
     - id: olympics
       name: Olympics
       public: true
       redirectURIs:
-        - https://olympics.maxstash.io/auth/callback
+        - https://olympics.maxhq.io/auth/callback
         - http://localhost:3000/auth/callback
 
     - id: ages
       name: Ages
       secretEnv: AGES_CLIENT_SECRET
       redirectURIs:
-        - https://ages.maxstash.io/oauth2/callback
-
-    - id: grafana
-      name: Grafana
-      secretEnv: GRAFANA_CLIENT_SECRET
-      redirectURIs:
-        - https://grafana.maxstash.io/login/generic_oauth
+        - https://ages.maxhq.io/oauth2/callback
 
     - id: argocd
       name: Argo CD
       secretEnv: ARGOCD_CLIENT_SECRET
       redirectURIs:
-        - https://argocd.maxstash.io/auth/callback
+        - https://argocd.maxhq.io/auth/callback
 
     - id: argocd-cli
       name: Argo CD CLI

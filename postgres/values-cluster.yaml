@@ -6,10 +6,10 @@ version:
 mode: standalone
 
 cluster:
-  instances: 3
+  instances: 2
   imagePullPolicy: Always
   storage:
-    size: 100Gi
+    size: 20Gi
     storageClass: local-path-retain
   walStorage:
     enabled: false
@@ -28,6 +28,12 @@ cluster:
   enableSuperuserAccess: true
   superuserSecret: 'postgres-superuser'
   enablePDB: true
+  roles:
+    - name: dex
+      ensure: present
+      login: true
+      passwordSecret:
+        name: postgres-dex-user
   monitoring:
     enabled: true
     podMonitor:
@@ -47,7 +53,7 @@ cluster:
       effective_io_concurrency: '200'
       work_mem: '3495kB'
   initdb:
-    database: maxstash
+    database: maxhq
     owner: maxmorhardt
     secret:
       name: postgres-admin-user
@@ -55,7 +61,7 @@ cluster:
 
 backups:
   enabled: true
-  destinationPath: 's3://maxstash-io-bucket/'
+  destinationPath: 's3://maxhq-backups/prod/'
   provider: s3
   s3:
     region: us-east-1
@@ -81,3 +87,7 @@ imageCatalog:
   create: false
 
 poolers: []
+
+databases:
+  - name: dex
+    owner: dex

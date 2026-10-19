@@ -1,6 +1,6 @@
 ## Overview
 
-GitOps control plane at `argocd.maxstash.io`. Every workload is an `Application` reconciled from
+GitOps control plane at `argocd.maxhq.io`. Every workload is an `Application` reconciled from
 this repo; CI only commits versions and holds no kubeconfig. Adding anything is a new file in
 `infra/` (upstream charts, values at `<component>/values.yaml`) or `apps/` (charts from
 `ghcr.io/maxmorhardt/charts`, last published from the retired `charts` repo; source now lives in
@@ -31,4 +31,4 @@ kubectl create secret generic argocd-oidc --namespace argocd \
 ## Notes
 
 - **Deploy**: cut a release. **Roll back**: revert the commit. **Pause**: drop `syncPolicy.automated`.
-- `prune: false` on `postgres-cluster`, `storage`, `maxstash-gateway` — pruning them is destructive.
+- `prune: false` on `postgres-cluster`, `storage`, `gateway` — pruning them is destructive.

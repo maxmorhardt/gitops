@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: squares-contests
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: squares
+  source:
+    repoURL: https://github.com/maxmorhardt/maxhq.git
+    path: charts/squares-contests
+    targetRevision: main
+    helm:
+      parameters:
+        - name: image.tag
+          value: 2.1.0
+      valuesObject:
+        route:
+          hostnames:
+            - api-dev.maxhq.io
+        auth:
+          issuer: https://login-dev.maxhq.io
+          jwksURI: https://login-dev.maxhq.io/keys
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

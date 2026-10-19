@@ -1,0 +1,66 @@
+# dev overrides on top of values.yaml; lists replace the base lists whole
+httpRoute:
+  hostnames:
+  - login-dev.maxhq.io
+config:
+  issuer: https://login-dev.maxhq.io
+  web:
+    allowedOrigins:
+    - https://squares-dev.maxhq.io
+    - https://olympics-dev.maxhq.io
+    - https://ages-dev.maxhq.io
+    - https://argocd-dev.maxhq.io
+    - http://localhost:3000
+  connectors:
+  - type: google
+    id: google
+    name: Google
+    config:
+      clientID: $GOOGLE_CLIENT_ID
+      clientSecret: $GOOGLE_CLIENT_SECRET
+      redirectURI: https://login-dev.maxhq.io/callback
+      promptType: ''
+  - type: github
+    id: github
+    name: GitHub
+    config:
+      clientID: $GITHUB_CLIENT_ID
+      clientSecret: $GITHUB_CLIENT_SECRET
+      redirectURI: https://login-dev.maxhq.io/callback
+      loadAllGroups: false
+  staticClients:
+  - id: squares
+    name: Squares
+    public: true
+    trustedPeers:
+    - squares-mobile
+    redirectURIs:
+    - https://squares-dev.maxhq.io/auth/callback
+    - http://localhost:3000/auth/callback
+  - id: squares-mobile
+    name: Squares
+    public: true
+    redirectURIs:
+    - https://squares-dev.maxhq.io/auth/callback
+    - http://localhost:3000/auth/callback
+  - id: olympics
+    name: Olympics
+    public: true
+    redirectURIs:
+    - https://olympics-dev.maxhq.io/auth/callback
+    - http://localhost:3000/auth/callback
+  - id: ages
+    name: Ages
+    secretEnv: AGES_CLIENT_SECRET
+    redirectURIs:
+    - https://ages-dev.maxhq.io/oauth2/callback
+  - id: argocd
+    name: Argo CD
+    secretEnv: ARGOCD_CLIENT_SECRET
+    redirectURIs:
+    - https://argocd-dev.maxhq.io/auth/callback
+  - id: argocd-cli
+    name: Argo CD CLI
+    public: true
+    redirectURIs:
+    - http://localhost:8085/auth/callback

@@ -1,5 +1,5 @@
 global:
-  domain: argocd.maxstash.io
+  domain: argocd.maxhq.io
 
 configs:
   params:
@@ -10,8 +10,8 @@ configs:
     timeout.reconciliation: 180s
     kustomize.buildOptions: --enable-helm
     oidc.config: |
-      name: maxstash
-      issuer: https://login.maxstash.io
+      name: maxhq
+      issuer: https://login.maxhq.io
       clientID: argocd
       clientSecret: $argocd-oidc:clientSecret
       cliClientID: argocd-cli
@@ -99,10 +99,10 @@ server:
     parentRefs:
       - group: gateway.networking.k8s.io
         kind: Gateway
-        name: maxstash
+        name: maxhq
         namespace: envoy-gateway-system
     hostnames:
-      - argocd.maxstash.io
+      - argocd.maxhq.io
     rules:
       - matches:
           - path:

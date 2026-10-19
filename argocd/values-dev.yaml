@@ -1,0 +1,21 @@
+global:
+  domain: argocd-dev.maxhq.io
+
+configs:
+  cm:
+    oidc.config: |
+      name: maxhq
+      issuer: https://login-dev.maxhq.io
+      clientID: argocd
+      clientSecret: $argocd-oidc:clientSecret
+      cliClientID: argocd-cli
+      requestedScopes:
+        - openid
+        - profile
+        - email
+        - offline_access
+
+server:
+  httproute:
+    hostnames:
+      - argocd-dev.maxhq.io

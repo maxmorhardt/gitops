@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dex
+  sources:
+    - repoURL: https://charts.dexidp.io
+      chart: dex
+      # renovate: datasource=helm depName=dex registryUrl=https://charts.dexidp.io
+      targetRevision: 0.26.0
+      helm:
+        valueFiles:
+          - $values/dex/values.yaml
+          - $values/dex/values-dev.yaml
+    - repoURL: https://github.com/maxmorhardt/gitops.git
+      targetRevision: main
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

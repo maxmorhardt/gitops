@@ -1,17 +1,7 @@
-kubectl create namespace cnpg-system
-kubectl create namespace cnpg-database
+#!/usr/bin/env bash
+# namespaces SealedSecrets land in, created before Argo CD syncs them
+set -euo pipefail
 
-kubectl create namespace valkey
-
-kubectl create namespace envoy-gateway-system
-
-kubectl create namespace dex
-
-kubectl create namespace sealed-secrets
-
-kubectl create namespace squares
-kubectl create namespace apps
-kubectl create namespace jobs
-kubectl create namespace maxstash
-
-kubectl create namespace monitoring
+for ns in argocd cloudflared cnpg-database dex envoy-gateway-system kube-system maxhq squares valkey; do
+  kubectl create namespace "$ns" --dry-run=client -o yaml | kubectl apply -f -
+done

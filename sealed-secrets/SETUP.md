@@ -2,24 +2,24 @@
 
 Encrypts secrets so they can live in git. A `SealedSecret` is encrypted with a public cert; only
 the in-cluster controller holds the private key and unseals it into a real `Secret`. Sealed
-manifests live in [argocd/secrets/](../argocd/secrets/) and are applied by their own Application
+manifests live in [clusters/<cluster>/secrets/](../clusters/) and are applied by their own Application
 (`sync-wave: -1`, so the CRD exists before anything creates a `SealedSecret`).
 
 ## Setup
 
 Install `kubeseal` (`brew install kubeseal` or the Bitnami release binary), then export the public
-cert once — it's public and committed on purpose:
+cert once per cluster (each has its own key) — it's public and committed on purpose:
 
 ```bash
-kubeseal --controller-name sealed-secrets --controller-namespace sealed-secrets \
-  --fetch-cert > sealed-secrets/pub-cert.pem
+kubeseal --context <cluster> --controller-name sealed-secrets --controller-namespace sealed-secrets \
+  --fetch-cert > clusters/<cluster>/pub-cert.pem
 ```
 
 ## Seal a secret
 
 ```bash
-kubeseal --format yaml --cert sealed-secrets/pub-cert.pem \
-  < secret.yaml > argocd/secrets/<namespace>/<name>.yaml && rm secret.yaml
+kubeseal --format yaml --cert clusters/<cluster>/pub-cert.pem \
+  < secret.yaml > clusters/<cluster>/secrets/<namespace>/<name>.yaml && rm secret.yaml
 ```
 
 If the Secret already exists in-cluster, adopt it first so the controller manages it:
