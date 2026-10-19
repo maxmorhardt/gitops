@@ -27,7 +27,7 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 - **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
 - **Data**: CloudNativePG for PostgreSQL (prod backs up to S3), Valkey with Sentinel for caches and
   event streams.
-- **Secrets**: SealedSecrets, sealed per cluster; the list is [clusters/SECRETS.md](clusters/SECRETS.md).
+- **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh`; the list is [clusters/SECRETS.md](clusters/SECRETS.md).
 - **Upgrades**: kured reboots nodes one at a time; system-upgrade-controller tracks k3s stable.
 
 Outside the clusters, the [maxhq](https://github.com/maxmorhardt/maxhq) monorepo holds the app
@@ -39,12 +39,13 @@ charts, the k3s bootstrap, and Terraform for DNS, backups, and GitHub settings.
 # 1. nodes: maxhq/infra/k3s/bootstrap
 python main.py up <cluster>
 
-# 2. namespaces, then Argo CD with the cluster's root app
+# 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/SETUP.md)
 kubectl config use-context <cluster>
 bootstrap/namespaces.sh
-bootstrap/argocd.sh <cluster>
+kubectl apply -f <cluster>-sealed-secrets-key.yaml
 
-# 3. seal the cluster's secrets (clusters/SECRETS.md), commit, and Argo CD syncs the rest
+# 3. Argo CD with the cluster's root app; it syncs everything else, committed secrets included
+bootstrap/argocd.sh <cluster>
 ```
 
 ## Layout
@@ -57,5 +58,6 @@ bootstrap/argocd.sh <cluster>
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
 | `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `SETUP.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
+| `scripts/` | day-to-day tools: `secrets.sh` (unseal, edit, seal), Postgres port-forward, dump, and restore |
 
 CI renders every chart and validates every manifest on pull requests; it never touches a cluster.

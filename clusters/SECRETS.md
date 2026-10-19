@@ -1,26 +1,28 @@
 # Secrets per cluster
 
-`bootstrap/seal-secrets.sh <cluster> <env-file>` seals all of them from one env file kept outside the repo.
-
-Every value here is sealed with the cluster's own key into `clusters/<cluster>/secrets/<namespace>/<name>.yaml`
-(see [infrastructure/sealed-secrets/SETUP.md](../infrastructure/sealed-secrets/SETUP.md)). Fetch the cert once Argo CD has synced sealed-secrets:
-
-```bash
-kubeseal --context <cluster> --controller-name sealed-secrets --controller-namespace sealed-secrets \
-  --fetch-cert > clusters/<cluster>/pub-cert.pem
-```
-
-Seal a generic secret:
+Every secret is sealed with its cluster's own key into `clusters/<cluster>/secrets/<namespace>/<name>.yaml`;
+only that cluster's sealed-secrets controller can decrypt it. Work on them in plain text with
+[scripts/secrets.sh](../scripts/secrets.sh), which keeps the plain copies in the gitignored `.secrets/`:
 
 ```bash
-kubectl create secret generic <name> -n <namespace> --dry-run=client -o yaml \
-  --from-literal=<KEY>=<value> ... \
-  | kubeseal --format yaml --cert clusters/<cluster>/pub-cert.pem \
-  > clusters/<cluster>/secrets/<namespace>/<name>.yaml
+# read: plain Secret YAML (values decoded) from the live cluster
+scripts/secrets.sh unseal prod --namespace squares        # or --all, or --secret squares/squares-games-env
+
+# change: edit .secrets/prod/squares/squares-games-env.yaml, then encrypt it back and commit
+scripts/secrets.sh seal prod --secret squares/squares-games-env
+
+# add: start a new one, fill in stringData, seal it
+scripts/secrets.sh new prod --secret squares/new-thing
+
+# done: drop the plain copies
+scripts/secrets.sh clean
 ```
 
-Generate passwords and tokens with `openssl rand -hex 24`. Prod and dev use **different** values for
-everything except the origin certificate and the OAuth app credentials noted below.
+Seal only what you changed: sealing re-encrypts, so every sealed file touched shows a diff. With the cluster
+down, `unseal ... --key <sealing-key backup>` decrypts offline (see
+[sealed-secrets/SETUP.md](../infrastructure/sealed-secrets/SETUP.md)).
+
+Generate passwords and tokens with `openssl rand -hex 24`.
 
 ## Both clusters
 

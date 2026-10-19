@@ -11,6 +11,7 @@ namespaces=(
   kube-system
   maxhq
   olympics
+  sealed-secrets
   squares
   valkey
 )

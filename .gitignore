@@ -3,6 +3,7 @@ charts
 *.tgz
 sealed-secrets-key*.yaml
 secret.yaml
+.secrets/
 
 # pg
 postgres-dumpall*.sql
