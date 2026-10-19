@@ -12,7 +12,7 @@ jobs:
         include:
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.10.3'
+            chart_version: '10.10.5'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_file: infrastructure/argocd/values.yaml
