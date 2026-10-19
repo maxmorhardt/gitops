@@ -16,13 +16,9 @@ Key renewal is off (`keyrenewperiod: '0'`), so each cluster keeps the one key it
 ## Back up the sealing key
 
 Lose a cluster's private key and **every sealed manifest for it becomes undecryptable**; the only way
-back is reissuing each value. Keep one backup per cluster outside the repo (a password manager
-attachment works):
-
-```bash
-kubectl --context <cluster> get secret -n sealed-secrets \
-  -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > <cluster>-sealed-secrets-key.yaml
-```
+back is reissuing each value. `scripts/secrets.sh backup-key <cluster>` saves it to the gitignored
+`scripts/keys/<cluster>.yaml`, where the script also uses it to decrypt without the cluster. Keep a copy
+outside this repo too (a password manager attachment works), since deleting the clone deletes the key.
 
 ## Rebuild a cluster with its key
 
@@ -31,9 +27,10 @@ generating a new one and every committed SealedSecret keeps working:
 
 ```bash
 bootstrap/namespaces.sh
-kubectl --context <cluster> apply -f <cluster>-sealed-secrets-key.yaml
+kubectl --context <cluster> apply -f scripts/keys/<cluster>.yaml
 ```
 
-Without the backup, let the controller make a new key, then re-seal everything from the old values:
-`scripts/secrets.sh unseal <cluster> --all --key <old key>` (or unseal the other cluster and adjust),
-delete `clusters/<cluster>/pub-cert.pem`, and run `scripts/secrets.sh seal <cluster> --all`.
+To give a cluster a new key instead: unseal everything first while the old key still works
+(`scripts/secrets.sh unseal <cluster> --all`), let the controller generate the new key, delete
+`clusters/<cluster>/pub-cert.pem`, run `scripts/secrets.sh backup-key <cluster>`, then
+`scripts/secrets.sh seal <cluster> --all`.

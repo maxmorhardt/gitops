@@ -42,7 +42,7 @@ python main.py up <cluster>
 # 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/SETUP.md)
 kubectl config use-context <cluster>
 bootstrap/namespaces.sh
-kubectl apply -f <cluster>-sealed-secrets-key.yaml
+kubectl apply -f scripts/keys/<cluster>.yaml
 
 # 3. Argo CD with the cluster's root app; it syncs everything else, committed secrets included
 bootstrap/argocd.sh <cluster>
@@ -58,6 +58,6 @@ bootstrap/argocd.sh <cluster>
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
 | `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `SETUP.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
-| `scripts/` | day-to-day tools: `secrets.sh` (unseal, edit, seal), Postgres port-forward, dump, and restore |
+| `scripts/` | day-to-day tools: `secrets.sh` (get, set, new, unseal, seal, backup-key), Postgres port-forward, dump, and restore |
 
 CI renders every chart and validates every manifest on pull requests; it never touches a cluster.

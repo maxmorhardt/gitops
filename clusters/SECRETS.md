@@ -1,26 +1,26 @@
 # Secrets per cluster
 
 Every secret is sealed with its cluster's own key into `clusters/<cluster>/secrets/<namespace>/<name>.yaml`;
-only that cluster's sealed-secrets controller can decrypt it. Work on them in plain text with
-[scripts/secrets.sh](../scripts/secrets.sh), which keeps the plain copies in the gitignored `.secrets/`:
+only that key can decrypt it. [scripts/secrets.sh](../scripts/secrets.sh) reads and writes them:
 
 ```bash
-# read: plain Secret YAML (values decoded) from the live cluster
-scripts/secrets.sh unseal prod --namespace squares        # or --all, or --secret squares/squares-games-env
-
-# change: edit .secrets/prod/squares/squares-games-env.yaml, then encrypt it back and commit
-scripts/secrets.sh seal prod --secret squares/squares-games-env
-
-# add: start a new one, fill in stringData, seal it
-scripts/secrets.sh new prod --secret squares/new-thing
-
-# done: drop the plain copies
-scripts/secrets.sh clean
+scripts/secrets.sh get prod squares/squares-games-env              # every KEY=value
+scripts/secrets.sh get prod squares/squares-games-env DB_PASSWORD  # one value
+scripts/secrets.sh set prod squares/squares-games-env DB_MAX_OPEN_CONNS=10 DB_PASSWORD=
+scripts/secrets.sh new prod squares/new-thing API_TOKEN= --type Opaque --label app=x
 ```
 
-Seal only what you changed: sealing re-encrypts, so every sealed file touched shows a diff. With the cluster
-down, `unseal ... --key <sealing-key backup>` decrypts offline (see
-[sealed-secrets/SETUP.md](../infrastructure/sealed-secrets/SETUP.md)).
+`KEY=` with nothing after it prompts for the value without echoing it, so it never lands in shell history;
+`KEY=@path` reads it from a file (certificates, keys).
+Commit the changed files under `clusters/<cluster>/secrets/` and Argo CD applies them.
+
+For bigger edits, `scripts/secrets.sh unseal prod --namespace squares` (or `--all`, or `--secret <ns>/<name>`)
+writes plain YAML to the gitignored `.secrets/prod/`; edit it, then `scripts/secrets.sh seal prod` with the same
+flag, and `scripts/secrets.sh clean`. Seal only what you changed: sealing re-encrypts, so every file sealed
+shows a diff.
+
+Decryption uses `scripts/keys/<cluster>.yaml` (gitignored; `scripts/secrets.sh backup-key <cluster>` saves it)
+when present, and the live cluster otherwise.
 
 Generate passwords and tokens with `openssl rand -hex 24`.
 
@@ -50,7 +50,7 @@ Generate passwords and tokens with `openssl rand -hex 24`.
 
 | namespace / name | type | keys | value |
 | --- | --- | --- | --- |
-| `envoy-gateway-system/maxhq.io-tls` | `kubernetes.io/tls` | `tls.crt`, `tls.key` | Cloudflare origin certificate for `maxhq.io` + `*.maxhq.io`: `kubectl create secret tls maxhq.io-tls -n envoy-gateway-system --cert=origin.pem --key=origin-priv.pem` |
+| `envoy-gateway-system/maxhq.io-tls` | `kubernetes.io/tls` | `tls.crt`, `tls.key` | Cloudflare origin certificate for `maxhq.io` + `*.maxhq.io`: `scripts/secrets.sh new prod envoy-gateway-system/maxhq.io-tls --type kubernetes.io/tls tls.crt=@origin.pem tls.key=@origin-priv.pem` |
 | `cnpg-database/aws-s3-credentials` | generic | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` | an access key for IAM user `srv-s3` (policy `maxhq-backups-access-policy`) |
 
 ## Dev only
