@@ -4,14 +4,16 @@ set -euo pipefail
 cluster="${1:?usage: bootstrap/argocd.sh <dev|prod>}"
 cd "$(dirname "$0")/.."
 
+# dev values added if thats the cluster env
 values=(--values infrastructure/argocd/values.yaml)
 [ -f "infrastructure/argocd/values-$cluster.yaml" ] && values+=(--values "infrastructure/argocd/values-$cluster.yaml")
 
-# install crds first
+# install without crds first if not installed
 if ! kubectl get crd httproutes.gateway.networking.k8s.io servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then
 	for component in controller repoServer server redis; do
 		values+=(--set "$component.metrics.serviceMonitor.enabled=false")
 	done
+
 	values+=(--set server.httproute.enabled=false)
 fi
 
