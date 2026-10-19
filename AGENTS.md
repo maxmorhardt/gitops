@@ -38,7 +38,7 @@
 5. Separation of concerns with `maxhq`
    - `maxhq` holds chart source. This repo holds which version of that chart runs, and where.
 6. Ownership of pinned lines
-   - `image.tag` in `clusters/prod/apps/` is written by each app's release in `maxhq`. Editing it by hand works but is overwritten by the next release.
+   - `image.tag` in `clusters/dev/apps/` is written by every merge to maxhq `main`; `image.tag` and `targetRevision` in `clusters/prod/apps/` are written by each app's release, after approval. Editing them by hand works but is overwritten by the next deploy.
 7. Runbooks live beside config
    - Each component's `SETUP.md` is its operational runbook and stays current with its values file.
 
