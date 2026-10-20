@@ -13,11 +13,11 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: olympics-api
-    targetRevision: 2.0.1
+    targetRevision: 1.0.0
     helm:
       parameters:
         - name: image.tag
-          value: 2.0.1
+          value: 1.0.0
   syncPolicy:
     automated:
       prune: true
