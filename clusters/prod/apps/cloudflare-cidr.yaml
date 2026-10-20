@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudflare-cidr
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: envoy-gateway-system
+  source:
+    repoURL: ghcr.io/maxmorhardt/charts
+    chart: cloudflare-cidr
+    targetRevision: 1.0.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

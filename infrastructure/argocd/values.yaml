@@ -7,8 +7,6 @@ configs:
     application.namespaces: argocd
   cm:
     application.instanceLabelKey: argocd.argoproj.io/instance
-    # ci reads app status after a deploy (workflows cd-verify); it can never change anything
-    accounts.ci: apiKey
     timeout.reconciliation: 180s
     kustomize.buildOptions: --enable-helm
     oidc.config: |
@@ -34,7 +32,6 @@ configs:
     scopes: '[email]'
     policy.csv: |
       g, maxmorhardt13@gmail.com, role:admin
-      g, ci, role:readonly
   repositories:
     charts:
       name: charts
