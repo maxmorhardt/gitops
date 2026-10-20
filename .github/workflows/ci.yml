@@ -123,6 +123,7 @@ jobs:
         infrastructure/cert-manager/manifests
         infrastructure/system-upgrade-controller/plans.yaml
         infrastructure/storage/local-path-retain.yaml
+        infrastructure/monitoring/rules
 
   validate-complete:
     name: Validate Complete

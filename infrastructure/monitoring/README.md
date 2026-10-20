@@ -9,11 +9,23 @@
 | Envoy proxy metrics | `annotationAutodiscovery`, reading the `prometheus.io/*` annotations Envoy Gateway puts on its proxy pods |
 | pod logs and Kubernetes events | `podLogsViaLoki`, `clusterEvents` |
 
-Alert rules, the Discord contact point, dashboards, and uptime checks are Terraform in maxhq's `infra/terraform/grafana`, not here.
+## Alerts
+
+Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `alloy-singleton`: each app chart's own rules, plus the platform rules in [`rules/platform.yaml`](rules/platform.yaml) (nodes, crash loops, disk, certificates, gateway 5xx, Postgres backups, Argo CD), which the same Application applies. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries its own `cluster` series, so one stack holds both without duplicate alerts.
+
+They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup in the stack: Alerting > Contact points, choose the Grafana Cloud Alertmanager (not Grafana's), add a Discord contact point, and make it the default in its notification policy. The synced rules show under Alerting > Alert rules, as data source-managed rules.
+
+## Dashboards
+
+App dashboards are JSON in [`dashboards/`](dashboards/README.md). Grafana Cloud's Kubernetes Monitoring app covers the cluster itself.
+
+## Uptime
+
+Synthetic Monitoring checks are set up in the stack's UI (Testing & synthetics > Synthetics), with alerting on the check: `https://maxhq.io`, `https://squares.maxhq.io`, `https://api.maxhq.io/squares/stats`, `https://login.maxhq.io/.well-known/openid-configuration`, `https://olympics.maxhq.io`.
 
 ## Secrets
 
-Two secrets in `monitoring`, one per Grafana Cloud destination, each with `url`, `username`, and `password`. In Grafana Cloud, open the stack's **Prometheus** and **Loki** details for the URL and user (instance id), and create an access policy token with `metrics:write` and `logs:write` for the password:
+Two secrets in `monitoring`, one per Grafana Cloud destination, each with `url`, `username`, and `password`. In Grafana Cloud, open the stack's **Prometheus** and **Loki** details for the URL and user (instance id), and create an access policy token with `metrics:write`, `logs:write`, `rules:read`, and `rules:write` for the password:
 
 ```bash
 scripts/secrets.sh new <cluster> monitoring/grafana-cloud-metrics url=https://prometheus-prod-XX.grafana.net/api/prom/push username=<prometheus user id> password=

@@ -10,6 +10,11 @@ destinations:
     secret:
       create: false
       name: grafana-cloud-metrics
+    # sync every PrometheusRule in the cluster to grafana cloud's ruler; the ruler api sits at the stack's base url
+    rules:
+      enabled: true
+      collector: alloy-singleton
+      addressFrom: string.trim_suffix(convert.nonsensitive(remote.kubernetes.secret.grafanacloudmetrics.data["url"]), "/api/prom/push")
   grafanaCloudLogs:
     type: loki
     urlFrom: convert.nonsensitive(remote.kubernetes.secret.grafanacloudlogs.data["url"])

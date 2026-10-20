@@ -1,0 +1,73 @@
+# platform alerts; alloy syncs them to grafana cloud along with every chart's own PrometheusRule
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: platform
+  namespace: monitoring
+spec:
+  groups:
+    - name: platform
+      rules:
+        - alert: NodeNotReady
+          expr: kube_node_status_condition{condition="Ready", status="true"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: '{{ $labels.node }} has not been Ready for 5 minutes'
+        - alert: PodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.namespace }}/{{ $labels.pod }} restarted more than 3 times in 15 minutes'
+        - alert: DiskAlmostFull
+          expr: 1 - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"} > 0.8
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.mountpoint }} on {{ $labels.instance }} is over 80% full'
+        - alert: CertificateExpiring
+          expr: certmanager_certificate_expiration_timestamp_seconds - time() < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.namespace }}/{{ $labels.name }} expires in under 14 days'
+        - alert: Gateway5xxSpike
+          expr: sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_cluster_upstream_rq_total[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: More than 5% of requests through the gateway are failing
+        - alert: PostgresBackupFailed
+          expr: cnpg_collector_last_failed_backup_timestamp > cnpg_collector_last_available_backup_timestamp
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: The last Postgres backup failed
+        - alert: PostgresBackupStale
+          expr: time() - cnpg_collector_last_available_backup_timestamp > 26 * 3600
+          for: 1h
+          labels:
+            severity: critical
+          annotations:
+            summary: No Postgres backup in over 26 hours
+        - alert: ArgoCDAppDegraded
+          expr: argocd_app_info{health_status=~"Degraded|Missing|Unknown"} == 1
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.name }} is {{ $labels.health_status }}'
+        - alert: ArgoCDAppOutOfSync
+          expr: argocd_app_info{sync_status="OutOfSync"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.name }} has been OutOfSync for 30 minutes'

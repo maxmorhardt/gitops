@@ -1,2 +1,16 @@
 cluster:
   name: prod
+
+# both clusters sync rules into one stack, so each cluster's rules only read its own series and land in its own namespace
+destinations:
+  grafanaCloudMetrics:
+    rules:
+      mimirNamespacePrefix: prod
+      extraArguments: |
+        extra_query_matchers {
+          matcher {
+            name       = "cluster"
+            match_type = "="
+            value      = "prod"
+          }
+        }
