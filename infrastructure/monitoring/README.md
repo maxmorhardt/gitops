@@ -32,7 +32,7 @@ They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup i
 Dashboard JSON in [`dashboards/`](dashboards/), one folder per type; import each folder into a Grafana folder of the same name:
 
 - **[`kubernetes/`](dashboards/kubernetes/):** compute resources by cluster, namespace, node, workload, and pod, persistent volumes, and Node Exporter Full for each node.
-- **[`platform/`](dashboards/platform/):** Argo CD, kured, sealed-secrets, and Valkey.
+- **[`platform/`](dashboards/platform/):** Argo CD, kured, sealed-secrets, Valkey, and NGINX (the web frontends' nginx exporter sidecars).
 - **[`squares/`](dashboards/squares/):** one per squares service.
 
 Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster. Most have a `cluster` variable. The platform dashboards and Node Exporter Full have a `Filters` bar instead, which defaults to `cluster = prod`.
