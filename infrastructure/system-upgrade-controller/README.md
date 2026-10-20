@@ -9,7 +9,7 @@ github.com.
 
 ## Schedule
 
-Both plans only create upgrade jobs Wednesday 02:00–04:00 America/New_York
+Both plans only create upgrade jobs Wednesday 06:00–08:00 UTC, the day after kured's Tuesday window
 
 ## Verify
 

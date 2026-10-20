@@ -20,9 +20,9 @@ spec:
   window:
     days:
       - wednesday
-    startTime: "02:00"
-    endTime: "04:00"
-    timeZone: America/New_York
+    startTime: "06:00"
+    endTime: "08:00"
+    timeZone: UTC
 
 ---
 apiVersion: upgrade.cattle.io/v1
@@ -52,6 +52,6 @@ spec:
   window:
     days:
       - wednesday
-    startTime: "02:00"
-    endTime: "04:00"
-    timeZone: America/New_York
+    startTime: "06:00"
+    endTime: "08:00"
+    timeZone: UTC
