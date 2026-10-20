@@ -27,6 +27,24 @@ scripts/secrets.sh new <cluster> argocd/argocd-oidc --label app.kubernetes.io/pa
 scripts/secrets.sh set <cluster> dex/dex-env ARGOCD_CLIENT_SECRET=
 ```
 
+## Notifications
+
+Every app posts to Discord when a sync succeeds and the app is healthy (once per revision), when its health goes `Degraded`, and when a sync fails. The webhook lives in `argocd/argocd-notifications-secret`:
+
+```bash
+scripts/secrets.sh new <cluster> argocd/argocd-notifications-secret --label app.kubernetes.io/part-of=argocd discord-webhook-url=
+```
+
+## CI account
+
+`ci` is a local account with `role:readonly` and API keys only, so no login. maxhq's `cd-prod` uses it, through the shared `cd-verify` workflow, to wait for a deploy to sync and report healthy. Prod only, since GitHub cannot reach dev:
+
+```bash
+argocd login argocd.maxhq.io --sso --grpc-web
+argocd account generate-token --account ci --grpc-web
+gh secret set ARGOCD_AUTH_TOKEN --repo maxmorhardt/maxhq
+```
+
 ## Notes
 
 - **Deploy**: merge to an app's `main` (dev) or cut a release (prod). **Roll back**: revert the commit here. **Pause**: drop `syncPolicy.automated`.

@@ -17,7 +17,7 @@
   - `infra/*.yaml` - one `Application` per infrastructure component, pointing at that component's directory here or at an upstream chart with its values from here.
   - `apps/*.yaml` - one `Application` per app: the chart from `oci://ghcr.io/maxmorhardt/charts` at a pinned `targetRevision` (public charts from maxhq, private ones from maxhq-private), `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
-- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
+- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `monitoring/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
 - `bootstrap/argocd.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
 - `bootstrap/namespaces.sh` - creates the namespaces secrets land in (including `sealed-secrets`), before Argo CD exists.
 - `scripts/` - day-to-day tools: `secrets.sh` (`get`, `set`, `new`, `unseal`, `seal`, `backup-key`) and the Postgres port-forward, dump, and restore scripts. Sealing keys live in the gitignored `scripts/keys/`.

@@ -1,0 +1,62 @@
+# the url, username, and password of each destination come from a sealed secret in monitoring
+destinations:
+  grafanaCloudMetrics:
+    type: prometheus
+    urlFrom: convert.nonsensitive(remote.kubernetes.secret.grafanacloudmetrics.data["url"])
+    auth:
+      type: basic
+      usernameKey: username
+      passwordKey: password
+    secret:
+      create: false
+      name: grafana-cloud-metrics
+  grafanaCloudLogs:
+    type: loki
+    urlFrom: convert.nonsensitive(remote.kubernetes.secret.grafanacloudlogs.data["url"])
+    auth:
+      type: basic
+      usernameKey: username
+      passwordKey: password
+    secret:
+      create: false
+      name: grafana-cloud-logs
+
+clusterMetrics:
+  enabled: true
+  collector: alloy-metrics
+
+clusterEvents:
+  enabled: true
+  collector: alloy-singleton
+
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
+
+# every chart here ships ServiceMonitors and PodMonitors: the apps, cnpg, argo cd, valkey, sealed-secrets, kured
+prometheusOperatorObjects:
+  enabled: true
+  collector: alloy-metrics
+
+# envoy's proxy pods advertise their metrics with the common prometheus.io annotations
+annotationAutodiscovery:
+  enabled: true
+  collector: alloy-metrics
+  annotations:
+    scrape: prometheus.io/scrape
+    metricsPath: prometheus.io/path
+    metricsPortNumber: prometheus.io/port
+
+telemetryServices:
+  kube-state-metrics:
+    deploy: true
+  node-exporter:
+    deploy: true
+
+collectors:
+  alloy-metrics:
+    presets: [clustered, statefulset]
+  alloy-logs:
+    presets: [filesystem-log-reader, daemonset]
+  alloy-singleton:
+    presets: [singleton]
