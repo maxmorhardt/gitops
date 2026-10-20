@@ -6,7 +6,7 @@ CloudNativePG in two Applications: the operator in `cnpg-system` and the cluster
 ## Secrets
 
 Three secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-database/` — see
-[sealed-secrets/SETUP.md](../sealed-secrets/SETUP.md). Argo applies them; nothing here is
+[sealed-secrets/README.md](../sealed-secrets/README.md). Argo applies them; nothing here is
 `kubectl apply`'d by hand.
 
 | secret | keys |

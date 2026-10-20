@@ -14,7 +14,7 @@ One Helm release in the `dex` namespace: the upstream chart (`dex/dex` from http
 2. **Google OAuth client**: Google Cloud Console → APIs & Services → Credentials → Create OAuth client ID (Web application). Authorized redirect URI: `https://login.maxhq.io/callback`. Configure the consent screen (external, publish).
 3. **GitHub OAuth app**: Settings → Developer settings → OAuth Apps → New. Authorization callback URL: `https://login.maxhq.io/callback`.
 4. Create the secret: `cp secret.example.yaml secret.yaml`, fill it in, then seal it and
-   delete the plaintext (see [sealed-secrets/SETUP.md](../sealed-secrets/SETUP.md))
+   delete the plaintext (see [sealed-secrets/README.md](../sealed-secrets/README.md))
 5. Deploy: merge to `main` - Argo CD syncs the [dex Application](../../clusters/prod/infra/dex.yaml)
    and the sealed `dex-env` secret.
 

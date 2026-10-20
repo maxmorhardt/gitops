@@ -39,7 +39,7 @@ charts, the k3s bootstrap, and Terraform for DNS, backups, and GitHub settings.
 # 1. nodes: maxhq/infra/k3s/bootstrap
 python main.py up <cluster>
 
-# 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/SETUP.md)
+# 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/README.md)
 kubectl config use-context <cluster>
 bootstrap/namespaces.sh
 kubectl apply -f scripts/keys/<cluster>.yaml
@@ -56,7 +56,7 @@ bootstrap/argocd.sh <cluster>
 | `clusters/<cluster>/infra/` | one Application per infrastructure component |
 | `clusters/<cluster>/apps/` | one Application per app, charts from `ghcr.io/maxmorhardt/charts` (public from maxhq, private from maxhq-private) at a pinned version |
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
-| `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `SETUP.md` runbook |
+| `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `README.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
 | `scripts/` | day-to-day tools: `secrets.sh` (get, set, new, unseal, seal, backup-key), Postgres port-forward, dump, and restore |
 

@@ -17,7 +17,7 @@ It **adopts** already-running resources
 
 ## SSO
 
-Federates to the cluster's [Dex](../dex/SETUP.md) on the verified email claim (`rbac.scopes: [email]`).
+Federates to the cluster's [Dex](../dex/README.md) on the verified email claim (`rbac.scopes: [email]`).
 Admins are listed per-email in `policy.csv` - no role for default users. The oidc secret must exist
 in both Dex's `dex-env` and sealed here, and needs the `part-of` label or Argo can't resolve it:
 

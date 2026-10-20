@@ -18,7 +18,7 @@
   - `apps/*.yaml` - one `Application` per app: the chart from `oci://ghcr.io/maxmorhardt/charts` at a pinned `targetRevision` (public charts from maxhq, private ones from maxhq-private), `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
 - `clusters/SECRETS.md` - every secret each cluster needs, its keys, and where the values come from.
-- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `SETUP.md`.
+- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
 - `bootstrap/argocd.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
 - `bootstrap/namespaces.sh` - creates the namespaces secrets land in, before Argo CD exists.
 - `.github/workflows/ci.yml` - chart and manifest validation via the shared workflows, fanning into the `Validate Complete` check the rulesets require. **Never applies to the cluster.**
@@ -40,21 +40,21 @@
 6. Ownership of pinned lines
    - `image.tag` and `targetRevision` (the chart version) in `clusters/<cluster>/apps/` are written by CI: dev by every merge to an app's `main`, prod by each image or chart release after approval. Editing them by hand works but is overwritten by the next deploy.
 7. Runbooks live beside config
-   - Each component's `SETUP.md` is its operational runbook and stays current with its values file.
+   - Each component's `README.md` is its operational runbook and stays current with its values file.
 
 ## Agent Instructions
 
 - Make the smallest safe change that solves the requested problem.
 - Change infra behavior by editing the component's `values.yaml`, not the `Application`. Change which chart version runs by editing `targetRevision` in the `Application`.
-- **Never commit a plaintext `Secret`.** Seal it first (see `infrastructure/sealed-secrets/SETUP.md`) and put the SealedSecret in `clusters/<cluster>/secrets/<namespace>/`. Files named `*.example.yaml` are committed templates with placeholder values.
-- Adding a component means creating `infrastructure/<component>/` with `values.yaml` and `SETUP.md`, then adding `clusters/<cluster>/infra/<component>.yaml` for each cluster that runs it. Nothing runs until the `Application` exists.
-- When a values change alters how a component is reached, backed up, or recovered, update its `SETUP.md` in the same commit.
+- **Never commit a plaintext `Secret`.** Seal it first (see `infrastructure/sealed-secrets/README.md`) and put the SealedSecret in `clusters/<cluster>/secrets/<namespace>/`. Files named `*.example.yaml` are committed templates with placeholder values.
+- Adding a component means creating `infrastructure/<component>/` with `values.yaml` and `README.md`, then adding `clusters/<cluster>/infra/<component>.yaml` for each cluster that runs it. Nothing runs until the `Application` exists.
+- When a values change alters how a component is reached, backed up, or recovered, update its `README.md` in the same commit.
 - Deleting a file is a destructive cluster operation. Confirm the resource is genuinely meant to be removed, not just moved.
 
 ## New Component Checklist
 
 1. Create `infrastructure/<component>/` with `values.yaml` (or raw manifests).
-2. Write `infrastructure/<component>/SETUP.md` covering how it is reached, configured, backed up, and recovered.
+2. Write `infrastructure/<component>/README.md` covering how it is reached, configured, backed up, and recovered.
 3. Add `clusters/<cluster>/infra/<component>.yaml` with the destination namespace and sync policy.
 4. Add any namespace it needs to `bootstrap/namespaces.sh`.
 5. Seal and commit its secrets under `clusters/<cluster>/secrets/<namespace>/`, and list them in `clusters/SECRETS.md`.
@@ -112,7 +112,7 @@ Conventional commits, enforced on PR titles by `pr-title.yml`. There is no relea
 - `fix`: Corrects broken or unsafe cluster configuration.
 - `chore`: Maintenance that does not change cluster behavior, including routine version bumps.
 - `ci`: Validation workflow changes.
-- `docs`: `README.md` or a `SETUP.md` only.
+- `docs`: a `README.md` only.
 
 Scope is the component or app directory.
 
