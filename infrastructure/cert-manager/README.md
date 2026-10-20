@@ -1,4 +1,4 @@
-## Overview
+# cert-manager
 
 Dev only. Dev is reachable only on the tailnet, so Cloudflare's proxy and origin certificate don't
 apply; cert-manager gets a publicly trusted certificate for `dev.maxhq.io` and `*.dev.maxhq.io`

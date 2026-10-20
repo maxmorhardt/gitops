@@ -1,4 +1,4 @@
-## Overview
+# Argo CD
 
 GitOps control plane per cluster, at `argocd.maxhq.io` (prod) and `argocd.dev.maxhq.io` (dev).
 Every workload is an `Application` reconciled from this repo; CI only commits versions and holds
@@ -13,22 +13,21 @@ values at `infrastructure/<component>/values.yaml`) or `clusters/<cluster>/apps/
 bootstrap/argocd.sh <cluster>
 ```
 
-It **adopts** already-running resources
+It adopts resources that already exist, so re-running it is safe.
 
 ## SSO
 
 Federates to the cluster's [Dex](../dex/README.md) on the verified email claim (`rbac.scopes: [email]`).
-Admins are listed per-email in `policy.csv` - no role for default users. The oidc secret must exist
-in both Dex's `dex-env` and sealed here, and needs the `part-of` label or Argo can't resolve it:
+Admins are listed per-email in `policy.csv` - no role for default users. The client secret lives in
+both Dex's `dex-env` (`ARGOCD_CLIENT_SECRET`) and `argocd/argocd-oidc`, which needs the `part-of` label or
+Argo can't resolve it:
 
 ```bash
-kubectl create secret generic argocd-oidc --namespace argocd \
-  --from-literal=clientSecret="$(openssl rand -hex 32)" --dry-run=client -o yaml \
-| kubectl label --local -f - app.kubernetes.io/part-of=argocd -o yaml \
-| kubeseal --format yaml --cert clusters/<cluster>/pub-cert.pem > clusters/<cluster>/secrets/argocd/argocd-oidc.yaml
+scripts/secrets.sh new <cluster> argocd/argocd-oidc --label app.kubernetes.io/part-of=argocd clientSecret=
+scripts/secrets.sh set <cluster> dex/dex-env ARGOCD_CLIENT_SECRET=
 ```
 
 ## Notes
 
-- **Deploy**: cut a release. **Roll back**: revert the commit. **Pause**: drop `syncPolicy.automated`.
+- **Deploy**: merge to an app's `main` (dev) or cut a release (prod). **Roll back**: revert the commit here. **Pause**: drop `syncPolicy.automated`.
 - `prune: false` on `postgres-cluster`, `storage`, `gateway` — pruning them is destructive.

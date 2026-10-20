@@ -27,11 +27,11 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 - **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
 - **Data**: CloudNativePG for PostgreSQL (prod backs up to S3), Valkey with Sentinel for caches and
   event streams.
-- **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh`; the list is [clusters/SECRETS.md](clusters/SECRETS.md).
+- **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh` (see [sealed-secrets](infrastructure/sealed-secrets/README.md)).
 - **Upgrades**: kured reboots nodes one at a time; system-upgrade-controller tracks k3s stable.
 
-Outside the clusters, the [maxhq](https://github.com/maxmorhardt/maxhq) monorepo holds the app
-charts, the k3s bootstrap, and Terraform for DNS, backups, and GitHub settings.
+Outside the clusters, [maxhq](https://github.com/maxmorhardt/maxhq) and maxhq-private publish the app charts to
+`ghcr.io/maxmorhardt/charts`, and maxhq holds the k3s bootstrap and Terraform for DNS, backups, and GitHub settings.
 
 ## Bring up a cluster
 

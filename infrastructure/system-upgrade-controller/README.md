@@ -1,4 +1,4 @@
-## Overview
+# system-upgrade-controller
 
 [k3s automated upgrades](https://docs.k3s.io/upgrades/automated). Control plane first via
 `server-plan`, then workers one at a time via `agent-plan`.
