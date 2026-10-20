@@ -1,10 +1,10 @@
-## Overview
+# Storage
 
 `local-path-retain` StorageClass - k3s's built-in local-path provisioner with
 `reclaimPolicy: Retain` instead of the default `Delete`, so deleting a PVC leaves the data on
 disk rather than wiping it. Used by anything whose data outlives its claim, notably Postgres.
 
-Synced from [clusters/prod/infra/storage.yaml](../../clusters/prod/infra/storage.yaml) as a plain manifest
+Synced from `clusters/<cluster>/infra/storage.yaml` as a plain manifest
 directory, not a chart.
 
 ## Notes

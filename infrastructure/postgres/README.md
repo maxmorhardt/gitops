@@ -1,21 +1,23 @@
-## Overview
+# PostgreSQL
 
 CloudNativePG in two Applications: the operator in `cnpg-system` and the cluster in
-`cnpg-database`. Backs Dex, Grafana, and the app databases, with WAL archiving to S3.
+`cnpg-database`. Backs Dex, olympics, and the shared `maxhq` database; prod archives WAL and
+takes daily backups to `s3://maxhq-backups/prod/`, dev has no backups.
 
 ## Secrets
 
-Three secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-database/` — see
-[sealed-secrets/SETUP.md](../sealed-secrets/SETUP.md). Argo applies them; nothing here is
+The secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-database/` — see
+[sealed-secrets/README.md](../sealed-secrets/README.md). Argo applies them; nothing here is
 `kubectl apply`'d by hand.
 
 | secret | keys |
 | --- | --- |
 | `postgres-superuser` | `username` (`postgres`), `password` |
-| `postgres-admin-user` | `username`, `password` — the database owner |
-| `aws-s3-credentials` | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` — backups |
+| `postgres-admin-user` | `username`, `password` — owner of the `maxhq` database |
+| `postgres-dex-user`, `postgres-olympics-user` | `username`, `password` — the declared `dex` and `olympics` roles |
+| `aws-s3-credentials` | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` — prod backups only |
 
-## Recovery
+## Recovery (prod)
 
 Cluster modes are overlays added after `values-cluster.yaml` in the `valueFiles` of
 [clusters/prod/infra/postgres-cluster.yaml](../../clusters/prod/infra/postgres-cluster.yaml):

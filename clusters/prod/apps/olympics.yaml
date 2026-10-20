@@ -11,13 +11,13 @@ spec:
     server: https://kubernetes.default.svc
     namespace: olympics
   source:
-    repoURL: git@github.com:maxmorhardt/maxhq-private.git
-    path: apps/olympics/web/charts/olympics
-    targetRevision: main
+    repoURL: ghcr.io/maxmorhardt/charts
+    chart: olympics
+    targetRevision: 1.0.0
     helm:
       parameters:
         - name: image.tag
-          value: 2.0.0
+          value: 1.0.0
   syncPolicy:
     automated:
       prune: true

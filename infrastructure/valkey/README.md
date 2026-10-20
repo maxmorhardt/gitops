@@ -1,4 +1,4 @@
-## Overview
+# Valkey
 
 Valkey for the squares services, from the [CloudPirates chart](https://github.com/CloudPirates-io/helm-charts/tree/main/charts/valkey):
 three pods on separate nodes, Sentinel failover, and an HAProxy sidecar in each pod that always
@@ -24,7 +24,7 @@ Passwords live in the sealed `valkey-users` Secret ([secret.example.yaml](secret
   by the SHA-256 of its password; each `squares-<service>-env` holds
   `REDIS_URL=redis://squares:<password>@valkey-master.valkey.svc:6379/0`
 
-To rotate: reseal `valkey-users`, update the hash (`printf %s "$PW" | sha256sum`) and each
+To rotate: `scripts/secrets.sh set <cluster> valkey/valkey-users squares=`, update the hash (`printf %s "$PW" | sha256sum`) and each
 `REDIS_URL`, then restart the StatefulSet and the squares services.
 
 ## Operations

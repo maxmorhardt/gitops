@@ -11,9 +11,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: envoy-gateway-system
   source:
-    repoURL: https://github.com/maxmorhardt/maxhq.git
-    path: charts/gateway
-    targetRevision: main
+    repoURL: ghcr.io/maxmorhardt/charts
+    chart: gateway
+    targetRevision: 1.0.0
   syncPolicy:
     automated:
       prune: false

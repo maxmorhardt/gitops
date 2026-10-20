@@ -9,9 +9,9 @@ hostNetwork: true
 
 configuration:
   rebootDays: [tue]
-  startTime: "02:00"
-  endTime: "04:00"
-  timeZone: America/New_York
+  startTime: "06:00"
+  endTime: "08:00"
+  timeZone: UTC
   rebootCommand: /usr/local/bin/pre-reboot.sh
   lockReleaseDelay: 10m
   drainTimeout: 5m

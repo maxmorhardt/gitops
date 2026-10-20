@@ -1,11 +1,11 @@
-## Overview
+# kured
 
 Handles weekly node drain → pre-reboot cleanup → reboot → uncordon automatically, one node at a time.
 
 ## How it works
 
 1. kured watches for `/var/run/reboot-required` on each node every hour
-2. On Tuesday from 02:00, kured acquires a cluster-wide lock and processes one node at a time
+2. On Tuesday between 06:00 and 08:00 UTC, kured acquires a cluster-wide lock and processes one node at a time
 3. kured cordons and drains the node, then calls `/usr/local/bin/pre-reboot.sh` (deployed by bootstrap)
 4. The pre-reboot script: prunes container images, runs `apt upgrade`, cleans logs/tmp/firmware backups, then reboots
 5. kured uncordons the node after it comes back
@@ -16,13 +16,8 @@ Pre-reboot logs are written to `/var/log/kured/pre-reboot-<date>.log` on each no
 
 Bootstrap must have run on all nodes (deploys `/usr/local/bin/pre-reboot.sh`).
 
-Create the secret in the cluster before deploying:
-
-```bash
-kubectl create secret generic kured-discord \
-  --namespace kube-system \
-  --from-literal=url="discord://token@id"
-```
+The sealed `kube-system/kured-discord` secret holds the Discord webhook (`url`, in Shoutrrr form
+`discord://<token>@<id>`); change it with `scripts/secrets.sh set <cluster> kube-system/kured-discord url=`.
 
 ## Notes
 

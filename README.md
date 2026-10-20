@@ -16,7 +16,7 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 | --- | --- | --- |
 | Nodes | Raspberry Pis at home | Contabo VPSes |
 | Hostnames | `dev.maxhq.io`, `<app>.dev.maxhq.io` (tailnet only) | `maxhq.io`, `<app>.maxhq.io` |
-| Deploys | every merge to an app's `main` | every release, after approval |
+| Deploys | every merge to an app's `main`: CI sets `sha-<commit>` images and `0.0.0-sha-<commit>` charts | every release, after approval: the promoted image or the released chart version |
 
 ## How it fits together
 
@@ -27,11 +27,11 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 - **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
 - **Data**: CloudNativePG for PostgreSQL (prod backs up to S3), Valkey with Sentinel for caches and
   event streams.
-- **Secrets**: SealedSecrets, sealed per cluster; the list is [clusters/SECRETS.md](clusters/SECRETS.md).
+- **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh` (see [sealed-secrets](infrastructure/sealed-secrets/README.md)).
 - **Upgrades**: kured reboots nodes one at a time; system-upgrade-controller tracks k3s stable.
 
-Outside the clusters, the [maxhq](https://github.com/maxmorhardt/maxhq) monorepo holds the app
-charts, the k3s bootstrap, and Terraform for DNS, backups, and GitHub settings.
+Outside the clusters, [maxhq](https://github.com/maxmorhardt/maxhq) and maxhq-private publish the app charts to
+`ghcr.io/maxmorhardt/charts`, and maxhq holds the k3s bootstrap and Terraform for DNS, backups, and GitHub settings.
 
 ## Bring up a cluster
 
@@ -39,12 +39,13 @@ charts, the k3s bootstrap, and Terraform for DNS, backups, and GitHub settings.
 # 1. nodes: maxhq/infra/k3s/bootstrap
 python main.py up <cluster>
 
-# 2. namespaces, then Argo CD with the cluster's root app
+# 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/README.md)
 kubectl config use-context <cluster>
 bootstrap/namespaces.sh
-bootstrap/argocd.sh <cluster>
+kubectl apply -f scripts/keys/<cluster>.yaml
 
-# 3. seal the cluster's secrets (clusters/SECRETS.md), commit, and Argo CD syncs the rest
+# 3. Argo CD with the cluster's root app; it syncs everything else, committed secrets included
+bootstrap/argocd.sh <cluster>
 ```
 
 ## Layout
@@ -53,9 +54,10 @@ bootstrap/argocd.sh <cluster>
 | --- | --- |
 | `clusters/<cluster>/root.yaml` | app-of-apps for the cluster |
 | `clusters/<cluster>/infra/` | one Application per infrastructure component |
-| `clusters/<cluster>/apps/` | one Application per app, charts from `maxhq/charts` or the private `maxhq-private` repo |
+| `clusters/<cluster>/apps/` | one Application per app, charts from `ghcr.io/maxmorhardt/charts` (public from maxhq, private from maxhq-private) at a pinned version |
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
-| `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `SETUP.md` runbook |
+| `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `README.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
+| `scripts/` | day-to-day tools: `secrets.sh` (get, set, new, unseal, seal, backup-key), Postgres port-forward, dump, and restore |
 
 CI renders every chart and validates every manifest on pull requests; it never touches a cluster.

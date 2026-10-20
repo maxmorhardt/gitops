@@ -11,9 +11,9 @@ spec:
     server: https://kubernetes.default.svc
     namespace: maxhq
   source:
-    repoURL: https://github.com/maxmorhardt/maxhq.git
-    path: charts/maxhq
-    targetRevision: main
+    repoURL: ghcr.io/maxmorhardt/charts
+    chart: maxhq
+    targetRevision: 0.0.0
     helm:
       parameters:
         - name: image.tag
