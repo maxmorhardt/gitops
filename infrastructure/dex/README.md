@@ -18,5 +18,5 @@ One Helm release in the `dex` namespace: the upstream chart (`dex/dex` from http
 ## Adding a new app
 
 1. Add a `staticClients` entry: SPAs get `public: true` + exact redirect URIs; server-side apps get `secretEnv: <APP>_CLIENT_SECRET` plus a new key in `dex-env` (`scripts/secrets.sh set <cluster> dex/dex-env <APP>_CLIENT_SECRET=`). Add the dev
-   redirect URIs to `values-dev.yaml` too.
+   redirect URIs to `values-dev.yaml` too. `http://localhost:3000` belongs in dev only: local frontends sign in against dev's Dex, never prod's.
 2. Merge; Argo CD restarts dex with the new config. The app's OIDC config: issuer `https://login.maxhq.io` (or `login.dev.maxhq.io`), its client id, scopes `openid profile email offline_access`.
