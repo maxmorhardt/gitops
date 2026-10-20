@@ -14,30 +14,28 @@
 
 Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `alloy-singleton`. The same Application applies everything in [`rules/`](rules/):
 
-- [`kube-prometheus.yaml`](rules/kube-prometheus.yaml): kube-prometheus-stack's default alerting and recording rules for nodes, workloads, storage, and the kubelet.
+- [`workloads.yaml`](rules/workloads.yaml): pods, deployments, statefulsets, daemonsets, jobs, resource overcommit, volumes, and down scrape targets.
+- [`nodes.yaml`](rules/nodes.yaml): node readiness and pressure, kubelet health and certificates, and node-exporter's disk, network, clock, and memory alerts.
+- [`recording.yaml`](rules/recording.yaml): the recording rules the alerts and the kubernetes dashboards read.
 - [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, and k3s upgrades.
+
+The first three come from kube-prometheus-stack (originally from the kubernetes and node mixins), copied once with their `job` selectors changed to Alloy's: `integrations/kubernetes/kubelet`, `.../cadvisor`, `.../kube-state-metrics`, and `integrations/node_exporter`. Edit them in place. Groups for things Alloy doesn't scrape on k3s were left out: the API server, scheduler, controller manager, etcd, and kube-state-metrics' own metrics.
+
+The extra metrics these rules read, beyond Grafana's default allowlists, are listed under `includeMetrics` in [`values.yaml`](values.yaml).
 
 Each app chart also ships its own rules. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries its own `cluster` series, so one stack holds both without duplicate alerts.
 
 They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup in the stack: Alerting > Contact points, choose the Grafana Cloud Alertmanager (not Grafana's), add a Discord contact point, and make it the default in its notification policy. The synced rules show under Alerting > Alert rules, as data source-managed rules.
 
-## kube-prometheus rules and dashboards
-
-The kube-prometheus-stack chart is never installed. [`scripts/kube-prometheus-render.sh`](../../scripts/kube-prometheus-render.sh) renders only its rules and dashboards, using [`kube-prometheus/values.yaml`](kube-prometheus/values.yaml). It also rewrites their `job` selectors to Alloy's (`integrations/kubernetes/kubelet`, `.../cadvisor`, `.../kube-state-metrics`, `integrations/node_exporter`).
-
-Rule groups for components Alloy doesn't scrape on k3s are turned off: the API server, scheduler, controller manager, etcd, and Prometheus itself. To change which rules or dashboards are included, or to move to a new chart version, edit the values (or `version` in the script) and rerun it. Never edit the rendered output.
-
-The extra metrics these rules read beyond Grafana's default allowlists are listed under `includeMetrics` in [`values.yaml`](values.yaml).
-
 ## Dashboards
 
-Dashboard JSON lives in [`dashboards/`](dashboards/):
+Dashboard JSON in [`dashboards/`](dashboards/), one folder per type; import each folder into a Grafana folder of the same name:
 
-- **Apps:** the four squares services.
-- **Platform:** Argo CD, kured, sealed-secrets, Valkey, and Node Exporter Full, from the old in-cluster Grafana.
-- **[`kubernetes/`](dashboards/kubernetes/):** kube-prometheus-stack's cluster, namespace, workload, pod, node, kubelet, and volume views.
+- **[`kubernetes/`](dashboards/kubernetes/):** compute resources by cluster, namespace, node, workload, and pod, persistent volumes, and Node Exporter Full for each node.
+- **[`platform/`](dashboards/platform/):** Argo CD, kured, sealed-secrets, and Valkey.
+- **[`squares/`](dashboards/squares/):** one per squares service.
 
-Each dashboard picks its data source through a variable. Dev and prod share one stack, so pick a `cluster` in each dashboard: the kubernetes dashboards have a `cluster` variable, and the platform ones have a `Filters` bar that defaults to `cluster = prod`.
+Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster. Most have a `cluster` variable. The platform dashboards and Node Exporter Full have a `Filters` bar instead, which defaults to `cluster = prod`.
 
 To load them, import each file once (Dashboards > New > Import), or point Grafana's Git Sync at the folder.
 

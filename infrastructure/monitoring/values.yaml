@@ -25,7 +25,7 @@ destinations:
       create: false
       name: grafana-cloud-logs
 
-# the default allowlists keep what grafana's kubernetes app needs; the includes add what the kube-prometheus rules and dashboards read
+# the default allowlists keep what grafana's kubernetes app needs; the includes add what rules/ reads
 clusterMetrics:
   enabled: true
   collector: alloy-metrics
