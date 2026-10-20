@@ -4,20 +4,44 @@
 
 | what | how |
 | --- | --- |
-| node, pod, and object metrics | `clusterMetrics`, with kube-state-metrics and node-exporter deployed alongside |
+| pod and object metrics | `clusterMetrics`: kubelet, cAdvisor, and kube-state-metrics |
+| node metrics | `hostMetrics`: node-exporter |
 | app, Postgres, Argo CD, Valkey, sealed-secrets, kured metrics | `prometheusOperatorObjects`: every ServiceMonitor and PodMonitor in the cluster |
 | Envoy proxy metrics | `annotationAutodiscovery`, reading the `prometheus.io/*` annotations Envoy Gateway puts on its proxy pods |
 | pod logs and Kubernetes events | `podLogsViaLoki`, `clusterEvents` |
 
 ## Alerts
 
-Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `alloy-singleton`: each app chart's own rules, plus the platform rules in [`rules/platform.yaml`](rules/platform.yaml) (nodes, crash loops, disk, certificates, gateway 5xx, Postgres backups, Argo CD), which the same Application applies. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries its own `cluster` series, so one stack holds both without duplicate alerts.
+Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `alloy-singleton`. The same Application applies everything in [`rules/`](rules/):
+
+- [`kube-prometheus.yaml`](rules/kube-prometheus.yaml): kube-prometheus-stack's default alerting and recording rules for nodes, workloads, storage, and the kubelet.
+- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, and k3s upgrades.
+
+Each app chart also ships its own rules. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries its own `cluster` series, so one stack holds both without duplicate alerts.
 
 They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup in the stack: Alerting > Contact points, choose the Grafana Cloud Alertmanager (not Grafana's), add a Discord contact point, and make it the default in its notification policy. The synced rules show under Alerting > Alert rules, as data source-managed rules.
 
+## kube-prometheus rules and dashboards
+
+The kube-prometheus-stack chart is never installed. [`scripts/kube-prometheus-render.sh`](../../scripts/kube-prometheus-render.sh) renders only its rules and dashboards, using [`kube-prometheus/values.yaml`](kube-prometheus/values.yaml). It also rewrites their `job` selectors to Alloy's (`integrations/kubernetes/kubelet`, `.../cadvisor`, `.../kube-state-metrics`, `integrations/node_exporter`).
+
+Rule groups for components Alloy doesn't scrape on k3s are turned off: the API server, scheduler, controller manager, etcd, and Prometheus itself. To change which rules or dashboards are included, or to move to a new chart version, edit the values (or `version` in the script) and rerun it. Never edit the rendered output.
+
+The extra metrics these rules read beyond Grafana's default allowlists are listed under `includeMetrics` in [`values.yaml`](values.yaml).
+
 ## Dashboards
 
-App dashboards are JSON in [`dashboards/`](dashboards/README.md). Grafana Cloud's Kubernetes Monitoring app covers the cluster itself.
+Dashboard JSON lives in [`dashboards/`](dashboards/):
+
+- **Apps:** the four squares services.
+- **Platform:** Argo CD, kured, sealed-secrets, Valkey, and Node Exporter Full, from the old in-cluster Grafana.
+- **[`kubernetes/`](dashboards/kubernetes/):** kube-prometheus-stack's cluster, namespace, workload, pod, node, kubelet, and volume views.
+
+Each dashboard picks its data source through a variable. Dev and prod share one stack, so pick a `cluster` in each dashboard: the kubernetes dashboards have a `cluster` variable, and the platform ones have a `Filters` bar that defaults to `cluster = prod`.
+
+To load them, import each file once (Dashboards > New > Import), or point Grafana's Git Sync at the folder.
+
+Node Exporter Full has panels for metrics outside the allowlist, such as pressure, schedstat, and the full network detail, and those panels stay empty.
 
 ## Uptime
 
@@ -36,4 +60,12 @@ A bare `password=` prompts for the token without echoing it.
 
 ## Free tier
 
-Grafana Cloud's free tier allows 10k active series and 50 GB of logs a month across both clusters. If usage gets close, turn off `podLogsViaLoki` in `values-dev.yaml` first.
+Grafana Cloud's free tier allows 10k active series and 50 GB of logs a month across both clusters. Metric series are the tight one. Check usage under Administration > Cost management after the first day.
+
+If usage gets close:
+
+1. Turn off `podLogsViaLoki` in `values-dev.yaml`.
+2. Trim the `includeMetrics` lists.
+3. Drop dev's node metrics (`hostMetrics.enabled: false` in `values-dev.yaml`).
+
+Pod veth interfaces are already dropped from the node network metrics.

@@ -1,7 +1,6 @@
 cluster:
   name: prod
 
-# both clusters sync rules into one stack, so each cluster's rules only read its own series and land in its own namespace
 destinations:
   grafanaCloudMetrics:
     rules:

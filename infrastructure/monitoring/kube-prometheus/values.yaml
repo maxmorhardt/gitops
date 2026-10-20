@@ -1,0 +1,107 @@
+# only the rules and dashboards are rendered; alloy does the scraping and grafana cloud does the rest
+fullnameOverride: kube-prometheus
+
+crds:
+  enabled: false
+
+prometheus:
+  enabled: false
+alertmanager:
+  enabled: false
+prometheusOperator:
+  enabled: false
+kubeStateMetrics:
+  enabled: false
+nodeExporter:
+  enabled: false
+  forceDeployDashboards: true
+  operatingSystems:
+    linux:
+      enabled: true
+    darwin:
+      enabled: false
+    aix:
+      enabled: false
+windowsMonitoring:
+  enabled: false
+
+grafana:
+  enabled: false
+  forceDeployDashboards: true
+  defaultDashboardsEnabled: true
+  sidecar:
+    dashboards:
+      multicluster:
+        global:
+          enabled: true
+
+# match what alloy scrapes on k3s: kubelet, cadvisor, kube-state-metrics, node-exporter
+kubernetesServiceMonitors:
+  enabled: false
+kubelet:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+kubeApiServer:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
+coreDns:
+  enabled: false
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: false
+    configReloaders: false
+    etcd: false
+    general: true
+    k8sContainerCpuLimits: true
+    k8sContainerCpuRequests: true
+    k8sContainerCpuUsageSecondsTotal: true
+    k8sContainerMemoryCache: true
+    k8sContainerMemoryLimits: true
+    k8sContainerMemoryRequests: true
+    k8sContainerMemoryRss: true
+    k8sContainerMemorySwap: true
+    k8sContainerMemoryWorkingSetBytes: true
+    k8sContainerResource: true
+    k8sPodOwner: true
+    kubeApiserverAvailability: false
+    kubeApiserverBurnrate: false
+    kubeApiserverHistogram: false
+    kubeApiserverSlos: false
+    kubeControllerManager: false
+    kubelet: true
+    kubeProxy: false
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeStateMetrics: true
+    network: true
+    node: true
+    nodeExporterAlerting: true
+    nodeExporterRecording: true
+    prometheus: false
+    prometheusOperator: false
+    windows: false
+  # always-firing heartbeats, and api server alerts with nothing scraping the api server
+  disabled:
+    Watchdog: true
+    InfoInhibitor: true
+    KubeAPIDown: true
+    KubeAPITerminatedRequests: true
+    KubeAggregatedAPIDown: true
+    KubeAggregatedAPIErrors: true
+    KubeClientCertificateExpiration: true
