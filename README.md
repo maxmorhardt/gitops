@@ -30,7 +30,6 @@ directory under [clusters/](clusters/); nothing reaches a cluster except through
 - **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh` (see [sealed-secrets](infrastructure/sealed-secrets/README.md)).
 - **Upgrades**: kured reboots nodes one at a time; system-upgrade-controller tracks k3s stable.
 - **Observability**: Grafana Alloy (`k8s-monitoring`) ships metrics, logs, and events to Grafana Cloud (see [monitoring](infrastructure/monitoring/README.md)); Argo CD posts deploys and failures to Discord.
-- **Pod security**: `bootstrap/namespaces.sh` labels the app namespaces to enforce the baseline standard and warn on anything short of restricted.
 
 Outside the clusters, [maxhq](https://github.com/maxmorhardt/maxhq) and maxhq-private publish the app charts to
 `ghcr.io/maxmorhardt/charts`, and maxhq holds the k3s bootstrap and Terraform for DNS, backups, and GitHub settings.
