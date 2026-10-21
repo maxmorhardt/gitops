@@ -139,9 +139,9 @@ notifications:
         - on-sync-failed
   triggers:
     trigger.on-health-degraded: |
-      - description: Health went degraded
+      - description: Degraded for 10 minutes, so a rollout that's still starting stays quiet
         send: [app-health-degraded]
-        when: app.status.health.status == 'Degraded'
+        when: app.status.health.status == 'Degraded' and time.Now().Sub(time.Parse(app.status.health.lastTransitionTime)).Minutes() >= 10
     trigger.on-sync-failed: |
       - description: Sync failed
         send: [app-sync-failed]
@@ -152,7 +152,7 @@ notifications:
         discord:
           method: POST
           body: |
-            {"content": "[{{.context.cluster}}] **{{.app.metadata.name}}** is degraded ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
+            {"content": "[{{.context.cluster}}] **{{.app.metadata.name}}** has been degraded for 10 minutes ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
     template.app-sync-failed: |
       webhook:
         discord:
