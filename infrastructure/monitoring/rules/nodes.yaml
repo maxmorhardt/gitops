@@ -201,7 +201,18 @@ spec:
           for: 15m
           labels:
             severity: warning
-    - name: node-exporter
+    - name: node-network
+      rules:
+        - alert: NodeNetworkInterfaceFlapping
+          annotations:
+            description: Network interface "{{ $labels.device }}" changing its up status often on node-exporter {{ $labels.namespace }}/{{ $labels.pod }}
+            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/nodenetworkinterfaceflapping
+            summary: Network interface is often changing its status
+          expr: changes(node_network_up{job="integrations/node_exporter",device!~"veth.+"}[2m]) > 2
+          for: 2m
+          labels:
+            severity: warning
+    - name: node-exporter-filesystem
       rules:
         - alert: NodeFilesystemSpaceFillingUp
           annotations:
@@ -323,6 +334,8 @@ spec:
           for: 1h
           labels:
             severity: critical
+    - name: node-exporter
+      rules:
         - alert: NodeNetworkReceiveErrs
           annotations:
             description: '{{ $labels.instance }} interface {{ $labels.device }} has encountered {{ printf "%.0f" $value }} receive errors in the last two minutes.'
@@ -481,16 +494,5 @@ spec:
             summary: Disk IO queue is high.
           expr: rate(node_disk_io_time_weighted_seconds_total{job="integrations/node_exporter", device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)"}[5m]) > 10
           for: 30m
-          labels:
-            severity: warning
-    - name: node-network
-      rules:
-        - alert: NodeNetworkInterfaceFlapping
-          annotations:
-            description: Network interface "{{ $labels.device }}" changing its up status often on node-exporter {{ $labels.namespace }}/{{ $labels.pod }}
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/general/nodenetworkinterfaceflapping
-            summary: Network interface is often changing its status
-          expr: changes(node_network_up{job="integrations/node_exporter",device!~"veth.+"}[2m]) > 2
-          for: 2m
           labels:
             severity: warning
