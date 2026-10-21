@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: squares-accounts
-    targetRevision: 0.0.0-sha-75b4ce1
+    targetRevision: 0.0.0-sha-fc2d1e9
     helm:
       parameters:
         - name: image.tag
