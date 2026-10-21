@@ -16,7 +16,7 @@ config:
     - appendfsync always
     - min-replicas-to-write 1
     - min-replicas-max-lag 10
-    - "user squares on #49b941550cdca8679ca6ef88187bcf0d1310e8b6c931039f019b44eed1cb84d8 ~squares:* resetchannels +@all -@dangerous"
+    - include /etc/valkey-acl/users.conf
 
 resources:
   requests:

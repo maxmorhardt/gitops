@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+helmCharts:
+  - name: valkey
+    repo: oci://docker.io/cloudpirates
+    version: 0.25.13
+    releaseName: valkey
+    namespace: valkey
+    valuesFile: values.yaml
+
+# the chart can't mount extra volumes, so the acl users file from the valkey-acl secret is patched in
+patches:
+  - target:
+      kind: StatefulSet
+      name: valkey
+    patch: |-
+      - op: add
+        path: /spec/template/spec/volumes/-
+        value:
+          name: acl
+          secret:
+            secretName: valkey-acl
+      - op: add
+        path: /spec/template/spec/containers/0/volumeMounts/-
+        value:
+          name: acl
+          mountPath: /etc/valkey-acl
+          readOnly: true

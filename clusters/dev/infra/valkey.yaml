@@ -10,17 +10,11 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: valkey
-  sources:
-    - repoURL: docker.io/cloudpirates
-      chart: valkey
-      # renovate: datasource=docker depName=docker.io/cloudpirates/valkey
-      targetRevision: 0.25.13
-      helm:
-        valueFiles:
-          - $values/infrastructure/valkey/values.yaml
-    - repoURL: https://github.com/maxmorhardt/gitops.git
-      targetRevision: main
-      ref: values
+  # the chart is rendered by kustomize so the acl secret can be mounted; the version is in the kustomization
+  source:
+    repoURL: https://github.com/maxmorhardt/gitops.git
+    targetRevision: main
+    path: infrastructure/valkey
   syncPolicy:
     automated:
       prune: true
