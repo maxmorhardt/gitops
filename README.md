@@ -9,12 +9,11 @@
 ![Valkey](https://img.shields.io/badge/valkey-6983FF?style=for-the-badge)
 ![kured](https://img.shields.io/badge/kured-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 
-Desired state for the `dev` and `prod` k3s clusters. Argo CD on each cluster reconciles its own
-directory under [clusters/](clusters/); nothing reaches a cluster except through a commit here.
+Desired state for the `dev` and `prod` k3s clusters. Argo CD on each cluster reconciles its own directory under [clusters/](clusters/)
 
 | | dev | prod |
 | --- | --- | --- |
-| Nodes | Raspberry Pis at home | Contabo VPSes |
+| Nodes | Raspberry Pis | Contabo VPSes |
 | Hostnames | `dev.maxhq.io`, `<app>.dev.maxhq.io` (tailnet only) | `maxhq.io`, `<app>.maxhq.io` |
 | Deploys | every merge to an app's `main`: CI sets `sha-<commit>` images and `0.0.0-sha-<commit>` charts | every release, after approval: the promoted image or the released chart version |
 
@@ -60,5 +59,3 @@ bootstrap/argocd.sh <cluster>
 | `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `README.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
 | `scripts/` | day-to-day tools: `secrets.sh` (get, set, new, unseal, seal, backup-key), Postgres port-forward, dump, and restore |
-
-CI renders every chart and validates every manifest on pull requests; it never touches a cluster.

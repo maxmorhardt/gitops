@@ -114,7 +114,6 @@ applicationSet:
 
 notifications:
   enabled: true
-  # sealed per cluster as argocd-notifications-secret with a discord-webhook-url key
   secret:
     create: false
   resources:

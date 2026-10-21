@@ -1,7 +1,6 @@
 crds:
   enabled: true
 
-# certificate expiry metrics for the platform alerts
 prometheus:
   enabled: true
   servicemonitor:

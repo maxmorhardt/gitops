@@ -1,4 +1,3 @@
-# the url, username, and password of each destination come from a sealed secret in monitoring
 destinations:
   grafanaCloudMetrics:
     type: prometheus
@@ -25,7 +24,6 @@ destinations:
       create: false
       name: grafana-cloud-logs
 
-# the default allowlists keep what grafana's kubernetes app needs; the includes add what rules/ reads
 clusterMetrics:
   enabled: true
   collector: alloy-metrics
@@ -52,7 +50,6 @@ hostMetrics:
         - node_timex_.*
         - node_uname_info
         - node_vmstat_pgmajfault
-    # pod veth interfaces come and go with every pod, so they'd multiply the network series
     extraMetricProcessingRules: |
       rule {
         source_labels = ["__name__", "device"]
