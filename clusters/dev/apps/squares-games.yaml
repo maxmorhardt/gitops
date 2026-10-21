@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: squares-games
-    targetRevision: 0.0.0-sha-fc2d1e9
+    targetRevision: 0.0.0-sha-5ac72f7
     helm:
       parameters:
         - name: image.tag
