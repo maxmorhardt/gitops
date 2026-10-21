@@ -10,7 +10,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: valkey
-  # the chart is rendered by kustomize so the acl secret can be mounted; the version is in the kustomization
   source:
     repoURL: https://github.com/maxmorhardt/gitops.git
     targetRevision: main

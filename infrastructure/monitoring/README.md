@@ -21,8 +21,6 @@ Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `all
 - [`recording.yaml`](rules/recording.yaml): the recording rules the alerts and the kubernetes dashboards read.
 - [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, and `MetricsStopped`.
 
-`MetricsStopped` is the dead man's switch. It runs in Grafana Cloud, not in the cluster, so it fires when a cluster stops sending metrics: Alloy down, network down, or the whole cluster down. The uptime checks cover what users see; this covers monitoring going quiet.
-
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
 The first three come from kube-prometheus-stack (originally from the kubernetes and node mixins), copied once with their `job` selectors changed to Alloy's: `integrations/kubernetes/kubelet`, `.../cadvisor`, `.../kube-state-metrics`, and `integrations/node_exporter`. Edit them in place. Groups for things Alloy doesn't scrape on k3s were left out: the API server, scheduler, controller manager, etcd, and kube-state-metrics' own metrics.

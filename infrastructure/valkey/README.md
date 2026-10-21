@@ -18,14 +18,3 @@ Two users, both from SealedSecrets in `clusters/<cluster>/secrets/valkey/`:
 
 The chart can't mount extra volumes, so Argo CD renders it through [`kustomization.yaml`](kustomization.yaml), which patches the `valkey-acl` mount into the StatefulSet. The chart version lives there too.
 
-Changing the squares password:
-
-1. Change it in `valkey-users`, and in each squares service's secret that holds it.
-2. Rewrite `valkey-acl` with the new hash:
-   ```bash
-   scripts/secrets.sh new <cluster> valkey/valkey-acl users.conf=@users.conf
-   ```
-   where `users.conf` holds `user squares on #<sha256 of the password> ~squares:* resetchannels +@all -@dangerous`.
-3. Merge, then restart the pods: `include` is only read at startup.
-
-To render locally: `kubectl kustomize --enable-helm infrastructure/valkey`. This needs Helm 3; kustomize can't run Helm 4.

@@ -9,7 +9,6 @@ helmCharts:
     namespace: valkey
     valuesFile: values.yaml
 
-# the chart can't mount extra volumes, so the acl users file from the valkey-acl secret is patched in
 patches:
   - target:
       kind: StatefulSet
