@@ -1,4 +1,3 @@
-# dev overrides on top of values.yaml; lists replace the base lists whole
 httpRoute:
   hostnames:
   - login.dev.maxhq.io
