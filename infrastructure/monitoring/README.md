@@ -1,6 +1,6 @@
 # monitoring
 
-[Grafana `k8s-monitoring`](https://github.com/grafana/k8s-monitoring-helm) runs Grafana Alloy in each cluster and ships everything to Grafana Cloud, labelled with `k8s_cluster_name` and `cluster` (`dev` or `prod`). A series that already has its own `cluster` label keeps it: CNPG's metrics carry the Postgres cluster's name there. So `k8s_cluster_name` is the label to filter on.
+[Grafana `k8s-monitoring`](https://github.com/grafana/k8s-monitoring-helm) runs Grafana Alloy in each cluster and ships everything to Grafana Cloud, labelled with `k8s_cluster_name` and `cluster` (`dev` or `prod`).
 
 What Alloy collects, and how:
 
@@ -37,35 +37,9 @@ Dashboard JSON in [`dashboards/`](dashboards/), one folder per type; import each
 - **[`platform/`](dashboards/platform/):** Argo CD, CloudNativePG, kured, sealed-secrets, Valkey, and NGINX (the web frontends' nginx exporter sidecars).
 - **[`squares/`](dashboards/squares/):** one per squares service.
 
-Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster. Most have a `cluster` variable. The platform dashboards and Node Exporter Full have a `Filters` bar instead, which defaults to `k8s_cluster_name = prod`.
-
-To load them, import each file once (Dashboards > New > Import), or point Grafana's Git Sync at the folder.
-
-Node Exporter Full has panels for metrics outside the allowlist, such as pressure, schedstat, and the full network detail, and those panels stay empty.
+Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster.
 
 ## Uptime
 
 Synthetic Monitoring checks are set up in the stack's UI (Testing & synthetics > Synthetics), with alerting on the check: `https://maxhq.io`, `https://squares.maxhq.io`, `https://api.maxhq.io/squares/stats`, `https://login.maxhq.io/.well-known/openid-configuration`, `https://olympics.maxhq.io`.
 
-## Secrets
-
-Two secrets in `monitoring`, one per Grafana Cloud destination, each with `url`, `username`, and `password`. In Grafana Cloud, open the stack's **Prometheus** and **Loki** details for the URL and user (instance id), and create an access policy token with `metrics:write`, `logs:write`, `rules:read`, and `rules:write` for the password:
-
-```bash
-scripts/secrets.sh new <cluster> monitoring/grafana-cloud-metrics url=https://prometheus-prod-XX.grafana.net/api/prom/push username=<prometheus user id> password=
-scripts/secrets.sh new <cluster> monitoring/grafana-cloud-logs url=https://logs-prod-XXX.grafana.net/loki/api/v1/push username=<loki user id> password=
-```
-
-A bare `password=` prompts for the token without echoing it.
-
-## Free tier
-
-Grafana Cloud's free tier allows 10k active series and 50 GB of logs a month across both clusters. Metric series are the tight one. Check usage under Administration > Cost management after the first day.
-
-If usage gets close:
-
-1. Turn off `podLogsViaLoki` in `values-dev.yaml`.
-2. Trim the `includeMetrics` lists.
-3. Drop dev's node metrics (`hostMetrics.enabled: false` in `values-dev.yaml`).
-
-Pod veth interfaces are already dropped from the node network metrics.
