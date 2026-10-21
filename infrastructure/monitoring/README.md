@@ -1,6 +1,8 @@
 # monitoring
 
-[Grafana `k8s-monitoring`](https://github.com/grafana/k8s-monitoring-helm) runs Grafana Alloy in each cluster and ships everything to Grafana Cloud, labelled with `cluster: dev` or `cluster: prod`:
+[Grafana `k8s-monitoring`](https://github.com/grafana/k8s-monitoring-helm) runs Grafana Alloy in each cluster and ships everything to Grafana Cloud, labelled with `k8s_cluster_name` and `cluster` (`dev` or `prod`). A series that already has its own `cluster` label keeps it: CNPG's metrics carry the Postgres cluster's name there. So `k8s_cluster_name` is the label to filter on.
+
+What Alloy collects, and how:
 
 | what | how |
 | --- | --- |
@@ -23,7 +25,7 @@ The first three come from kube-prometheus-stack (originally from the kubernetes 
 
 The extra metrics these rules read, beyond Grafana's default allowlists, are listed under `includeMetrics` in [`values.yaml`](values.yaml).
 
-Each app chart also ships its own rules. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries its own `cluster` series, so one stack holds both without duplicate alerts.
+Each app chart also ships its own rules. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries series with its own `k8s_cluster_name`, so one stack holds both without duplicate alerts.
 
 They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup in the stack: Alerting > Contact points, choose the Grafana Cloud Alertmanager (not Grafana's), add a Discord contact point, and make it the default in its notification policy. The synced rules show under Alerting > Alert rules, as data source-managed rules.
 
@@ -32,10 +34,10 @@ They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup i
 Dashboard JSON in [`dashboards/`](dashboards/), one folder per type; import each folder into a Grafana folder of the same name:
 
 - **[`kubernetes/`](dashboards/kubernetes/):** compute resources by cluster, namespace, node, workload, and pod, persistent volumes, and Node Exporter Full for each node.
-- **[`platform/`](dashboards/platform/):** Argo CD, kured, sealed-secrets, Valkey, and NGINX (the web frontends' nginx exporter sidecars).
+- **[`platform/`](dashboards/platform/):** Argo CD, CloudNativePG, kured, sealed-secrets, Valkey, and NGINX (the web frontends' nginx exporter sidecars).
 - **[`squares/`](dashboards/squares/):** one per squares service.
 
-Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster. Most have a `cluster` variable. The platform dashboards and Node Exporter Full have a `Filters` bar instead, which defaults to `cluster = prod`.
+Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster. Most have a `cluster` variable. The platform dashboards and Node Exporter Full have a `Filters` bar instead, which defaults to `k8s_cluster_name = prod`.
 
 To load them, import each file once (Dashboards > New > Import), or point Grafana's Git Sync at the folder.
 

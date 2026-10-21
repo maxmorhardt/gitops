@@ -3752,7 +3752,7 @@
         },
         "filters": [
           {
-            "key": "cluster",
+            "key": "k8s_cluster_name",
             "operator": "=",
             "value": "prod"
           }
