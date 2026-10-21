@@ -71,7 +71,3 @@ resources:
 
 monitoring:
   podMonitorEnabled: true
-  grafanaDashboard:
-    create: true
-    namespace: monitoring
-    configMapName: 'cnpg-grafana-dashboard'
