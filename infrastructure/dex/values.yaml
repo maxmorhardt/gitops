@@ -70,7 +70,6 @@ config:
       - https://olympics.maxhq.io
       - https://ages.maxhq.io
       - https://argocd.maxhq.io
-      - http://localhost:3000
 
   storage:
     type: postgres
@@ -115,21 +114,18 @@ config:
         - squares-mobile
       redirectURIs:
         - https://squares.maxhq.io/auth/callback
-        - http://localhost:3000/auth/callback
 
     - id: squares-mobile
       name: Squares
       public: true
       redirectURIs:
         - https://squares.maxhq.io/auth/callback
-        - http://localhost:3000/auth/callback
 
     - id: olympics
       name: Olympics
       public: true
       redirectURIs:
         - https://olympics.maxhq.io/auth/callback
-        - http://localhost:3000/auth/callback
 
     - id: ages
       name: Ages

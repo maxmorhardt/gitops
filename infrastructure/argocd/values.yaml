@@ -113,7 +113,62 @@ applicationSet:
   replicas: 0
 
 notifications:
-  enabled: false
+  enabled: true
+  secret:
+    create: false
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  notifiers:
+    service.webhook.discord: |
+      url: $discord-webhook-url
+      headers:
+        - name: Content-Type
+          value: application/json
+  subscriptions:
+    - recipients:
+        - discord
+      triggers:
+        - on-deployed
+        - on-health-degraded
+        - on-sync-failed
+  triggers:
+    trigger.on-deployed: |
+      - description: Synced and healthy, once per revision
+        oncePer: app.status.operationState?.syncResult?.revision
+        send: [app-deployed]
+        when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+    trigger.on-health-degraded: |
+      - description: Health went degraded
+        send: [app-health-degraded]
+        when: app.status.health.status == 'Degraded'
+    trigger.on-sync-failed: |
+      - description: Sync failed
+        send: [app-sync-failed]
+        when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
+  templates:
+    template.app-deployed: |
+      webhook:
+        discord:
+          method: POST
+          body: |
+            {"content": "Deployed **{{.app.metadata.name}}** at `{{.app.status.sync.revision | trunc 7}}` ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
+    template.app-health-degraded: |
+      webhook:
+        discord:
+          method: POST
+          body: |
+            {"content": "**{{.app.metadata.name}}** is degraded ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
+    template.app-sync-failed: |
+      webhook:
+        discord:
+          method: POST
+          body: |
+            {"content": "Sync failed for **{{.app.metadata.name}}**: {{.app.status.operationState.message | trunc 300}} ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
 
 dex:
   enabled: false

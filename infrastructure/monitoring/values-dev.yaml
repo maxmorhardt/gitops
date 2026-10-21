@@ -1,0 +1,15 @@
+cluster:
+  name: dev
+
+destinations:
+  grafanaCloudMetrics:
+    rules:
+      mimirNamespacePrefix: dev
+      extraArguments: |
+        extra_query_matchers {
+          matcher {
+            name       = "cluster"
+            match_type = "="
+            value      = "dev"
+          }
+        }

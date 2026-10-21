@@ -81,6 +81,22 @@ jobs:
             values_files: |
               infrastructure/postgres/values-cluster.yaml
               infrastructure/postgres/values-cluster-dev.yaml
+          - chart: grafana/k8s-monitoring
+            # renovate: datasource=helm depName=k8s-monitoring registryUrl=https://grafana.github.io/helm-charts
+            chart_version: '4.5.3'
+            helm_repo_name: grafana
+            helm_repo_url: https://grafana.github.io/helm-charts
+            values_files: |
+              infrastructure/monitoring/values.yaml
+              infrastructure/monitoring/values-prod.yaml
+          - chart: grafana/k8s-monitoring
+            # renovate: datasource=helm depName=k8s-monitoring registryUrl=https://grafana.github.io/helm-charts
+            chart_version: '4.5.3'
+            helm_repo_name: grafana
+            helm_repo_url: https://grafana.github.io/helm-charts
+            values_files: |
+              infrastructure/monitoring/values.yaml
+              infrastructure/monitoring/values-dev.yaml
           - chart: jetstack/cert-manager
             # renovate: datasource=helm depName=cert-manager registryUrl=https://charts.jetstack.io
             chart_version: 'v1.21.2'
@@ -107,6 +123,7 @@ jobs:
         infrastructure/cert-manager/manifests
         infrastructure/system-upgrade-controller/plans.yaml
         infrastructure/storage/local-path-retain.yaml
+        infrastructure/monitoring/rules
 
   validate-complete:
     name: Validate Complete

@@ -1,0 +1,15 @@
+cluster:
+  name: prod
+
+destinations:
+  grafanaCloudMetrics:
+    rules:
+      mimirNamespacePrefix: prod
+      extraArguments: |
+        extra_query_matchers {
+          matcher {
+            name       = "cluster"
+            match_type = "="
+            value      = "prod"
+          }
+        }

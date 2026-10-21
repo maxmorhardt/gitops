@@ -17,7 +17,7 @@
   - `infra/*.yaml` - one `Application` per infrastructure component, pointing at that component's directory here or at an upstream chart with its values from here.
   - `apps/*.yaml` - one `Application` per app: the chart from `oci://ghcr.io/maxmorhardt/charts` at a pinned `targetRevision` (public charts from maxhq, private ones from maxhq-private), `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
-- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
+- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `monitoring/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
 - `bootstrap/argocd.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
 - `bootstrap/namespaces.sh` - creates the namespaces secrets land in (including `sealed-secrets`), before Argo CD exists.
 - `scripts/` - day-to-day tools: `secrets.sh` (`get`, `set`, `new`, `unseal`, `seal`, `backup-key`) and the Postgres port-forward, dump, and restore scripts. Sealing keys live in the gitignored `scripts/keys/`.
@@ -91,7 +91,7 @@ Before adding a new component or upstream chart, verify:
 - **Ingress**: the `maxhq` Envoy Gateway listens on 443 on every node. Prod hostnames (`<app>.maxhq.io`) are Cloudflare-proxied A records to the prod nodes, with the Cloudflare origin certificate. Dev hostnames (`<app>.dev.maxhq.io`) are DNS-only records to dev's Tailscale IPs, so dev is reachable only on the tailnet, with a Let's Encrypt certificate from cert-manager. APIs share `api.maxhq.io` / `api.dev.maxhq.io` split by path prefix.
 - **Auth**: Dex at `login.maxhq.io` / `login.dev.maxhq.io`, federating Google and GitHub. Email is the identity.
 - **Data**: PostgreSQL via CloudNativePG (`postgres-operator` plus `postgres-cluster`; prod backs up to `s3://maxhq-backups/prod/`), Valkey with Sentinel for caches and the squares event streams.
-- **Observability**: the Prometheus Operator CRDs only, so charts' ServiceMonitors and rules apply; metrics and logs are not collected in-cluster.
+- **Observability**: Grafana Alloy (`k8s-monitoring`) scrapes every ServiceMonitor and ships metrics, logs, and events to Grafana Cloud, which also evaluates every `PrometheusRule`. Nothing is stored in-cluster. Rules live in `infrastructure/monitoring/rules/` and dashboard JSON in `infrastructure/monitoring/dashboards/<type>/`.
 - **Node maintenance**: kured coordinates rolling reboots, one node at a time, running `pre-reboot.sh` first. system-upgrade-controller tracks the k3s stable channel.
 
 ## Bootstrap Order

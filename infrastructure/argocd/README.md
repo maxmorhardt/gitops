@@ -27,6 +27,14 @@ scripts/secrets.sh new <cluster> argocd/argocd-oidc --label app.kubernetes.io/pa
 scripts/secrets.sh set <cluster> dex/dex-env ARGOCD_CLIENT_SECRET=
 ```
 
+## Notifications
+
+Every app posts to Discord when a sync succeeds and the app is healthy (once per revision), when its health goes `Degraded`, and when a sync fails. The webhook lives in `argocd/argocd-notifications-secret`:
+
+```bash
+scripts/secrets.sh new <cluster> argocd/argocd-notifications-secret --label app.kubernetes.io/part-of=argocd discord-webhook-url=
+```
+
 ## Notes
 
 - **Deploy**: merge to an app's `main` (dev) or cut a release (prod). **Roll back**: revert the commit here. **Pause**: drop `syncPolicy.automated`.

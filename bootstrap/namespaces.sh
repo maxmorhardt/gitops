@@ -10,6 +10,7 @@ namespaces=(
   envoy-gateway-system
   kube-system
   maxhq
+  monitoring
   olympics
   sealed-secrets
   squares

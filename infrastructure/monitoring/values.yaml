@@ -1,0 +1,92 @@
+destinations:
+  grafanaCloudMetrics:
+    type: prometheus
+    urlFrom: convert.nonsensitive(remote.kubernetes.secret.grafanacloudmetrics.data["url"])
+    auth:
+      type: basic
+      usernameKey: username
+      passwordKey: password
+    secret:
+      create: false
+      name: grafana-cloud-metrics
+    rules:
+      enabled: true
+      collector: alloy-singleton
+      addressFrom: string.trim_suffix(convert.nonsensitive(remote.kubernetes.secret.grafanacloudmetrics.data["url"]), "/api/prom/push")
+  grafanaCloudLogs:
+    type: loki
+    urlFrom: convert.nonsensitive(remote.kubernetes.secret.grafanacloudlogs.data["url"])
+    auth:
+      type: basic
+      usernameKey: username
+      passwordKey: password
+    secret:
+      create: false
+      name: grafana-cloud-logs
+
+clusterMetrics:
+  enabled: true
+  collector: alloy-metrics
+  kube-state-metrics:
+    metricsTuning:
+      includeMetrics: [kube_poddisruptionbudget_status_expected_pods]
+
+hostMetrics:
+  enabled: true
+  collector: alloy-metrics
+  linuxHosts:
+    enabled: true
+    metricsTuning:
+      includeMetrics:
+        - node_disk_.*
+        - node_filefd_.*
+        - node_load.*
+        - node_md_.*
+        - node_network_(receive|transmit)_(errs|packets)_total
+        - node_network_up
+        - node_nf_conntrack_.*
+        - node_textfile_scrape_error
+        - node_time_seconds
+        - node_timex_.*
+        - node_uname_info
+        - node_vmstat_pgmajfault
+    extraMetricProcessingRules: |
+      rule {
+        source_labels = ["__name__", "device"]
+        regex         = "node_network_.+;(veth|cni|flannel).*"
+        action        = "drop"
+      }
+
+clusterEvents:
+  enabled: true
+  collector: alloy-singleton
+
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
+
+prometheusOperatorObjects:
+  enabled: true
+  collector: alloy-metrics
+
+annotationAutodiscovery:
+  enabled: true
+  collector: alloy-metrics
+  annotations:
+    scrape: prometheus.io/scrape
+    metricsPath: prometheus.io/path
+    metricsPortNumber: prometheus.io/port
+
+telemetryServices:
+  kube-state-metrics:
+    deploy: true
+  node-exporter:
+    deploy: true
+
+collectors:
+  alloy-metrics:
+    presets: [clustered, statefulset]
+  alloy-logs:
+    presets: [filesystem-log-reader, daemonset]
+  alloy-singleton:
+    presets: [singleton]
