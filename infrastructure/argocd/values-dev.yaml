@@ -22,3 +22,7 @@ server:
   httproute:
     hostnames:
       - argocd.dev.maxhq.io
+
+notifications:
+  context:
+    cluster: dev

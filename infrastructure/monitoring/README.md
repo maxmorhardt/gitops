@@ -19,7 +19,9 @@ Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `all
 - [`workloads.yaml`](rules/workloads.yaml): pods, deployments, statefulsets, daemonsets, jobs, resource overcommit, volumes, and down scrape targets.
 - [`nodes.yaml`](rules/nodes.yaml): node readiness and pressure, kubelet health and certificates, and node-exporter's disk, network, clock, and memory alerts.
 - [`recording.yaml`](rules/recording.yaml): the recording rules the alerts and the kubernetes dashboards read.
-- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, and k3s upgrades.
+- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, and `MetricsStopped`.
+
+Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
 The first three come from kube-prometheus-stack (originally from the kubernetes and node mixins), copied once with their `job` selectors changed to Alloy's: `integrations/kubernetes/kubelet`, `.../cadvisor`, `.../kube-state-metrics`, and `integrations/node_exporter`. Edit them in place. Groups for things Alloy doesn't scrape on k3s were left out: the API server, scheduler, controller manager, etcd, and kube-state-metrics' own metrics.
 
