@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: ages-email
-    targetRevision: 0.0.0-sha-56b4036
+    targetRevision: 0.0.0-sha-b6d18d2
     helm:
       valuesObject:
         suspend: true
