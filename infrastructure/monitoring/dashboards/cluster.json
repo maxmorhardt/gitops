@@ -487,7 +487,7 @@
     {
       "type": "table",
       "title": "Nodes",
-      "description": "",
+      "description": "Click a node for its own dashboard.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -630,6 +630,23 @@
               {
                 "id": "unit",
                 "value": "s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Node"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open node",
+                    "url": "/d/maxhq-nodes/nodes?var-datasource=${datasource}&var-cluster=${cluster}&var-node=${__value.raw}&${__url_time_range}"
+                  }
+                ]
               }
             ]
           }

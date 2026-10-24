@@ -104,7 +104,7 @@ hostMetrics:
         - node_boot_time_seconds
         - node_cpu_scaling_frequency_hertz
         - node_cpu_seconds_total
-        - node_disk_io_time_weighted_seconds_total
+        - node_disk_(io_time_seconds|io_time_weighted_seconds|read_bytes|written_bytes)_total
         - node_filefd_(allocated|maximum)
         - node_filesystem_(avail_bytes|files|files_free|readonly|size_bytes)
         - node_hwmon_temp_celsius
@@ -113,6 +113,7 @@ hostMetrics:
         - node_network_(receive|transmit)_(bytes|errs|packets)_total
         - node_network_up
         - node_nf_conntrack_entries(_limit)?
+        - node_pressure_.*
         - node_textfile_scrape_error
         - node_timex_(maxerror_seconds|offset_seconds|sync_status)
         - node_vmstat_pgmajfault

@@ -29,7 +29,7 @@ Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `all
 - [`workloads.yaml`](rules/workloads.yaml): pods, deployments, statefulsets, daemonsets, jobs, resource overcommit, volumes, and down scrape targets.
 - [`nodes.yaml`](rules/nodes.yaml): node readiness and pressure, kubelet health and certificates, and node-exporter's disk, network, clock, and memory alerts.
 - [`recording.yaml`](rules/recording.yaml): the three recording rules the alerts read.
-- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, and `MetricsStopped`.
+- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, `MetricsStopped`, app deployments with no ready pods, Valkey, and Pi temperatures.
 
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
@@ -44,6 +44,7 @@ They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup i
 Dashboard JSON in [`dashboards/`](dashboards/). Import each into Grafana (Dashboards > New > Import); importing a changed file again with the same uid replaces the old one. Each picks its data sources and cluster through variables, and links to the others.
 
 - **[Cluster](dashboards/cluster.json):** health at a glance, nodes (CPU, memory, disk, network, Pi CPU and NVMe temperatures, CPU frequency), CPU and memory by namespace, pods not running and restarts, gateway traffic and errors by route, and Argo CD, Postgres, Valkey, certificates, and kured.
+- **[Nodes](dashboards/nodes.json):** one node: CPU by mode, which pods use its CPU and memory, CPU spent outside pods (k3s and the OS), load, pressure, disks, network, and temperatures. The Cluster dashboard's node names link here.
 - **[Workloads](dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
 - **[Apps](dashboards/apps.json):** one API service's requests, 5xx rate, latency, endpoints, database connections, outbox backlog, and error logs, plus squares activity and the web frontends.
 

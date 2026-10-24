@@ -64,3 +64,43 @@ spec:
             severity: warning
           annotations:
             summary: '{{ $labels.name }} has been OutOfSync for 30 minutes'
+    - name: services
+      rules:
+        - alert: AppDown
+          expr: kube_deployment_status_replicas_available{namespace=~"squares|olympics|maxhq|ages"} == 0 and kube_deployment_spec_replicas{namespace=~"squares|olympics|maxhq|ages"} > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: '{{ $labels.namespace }}/{{ $labels.deployment }} has no ready pods'
+        # with every pod gone there is no redis_up at all, so the statefulset stands in as zero
+        - alert: ValkeyDown
+          expr: (sum by (cluster) (redis_up{namespace="valkey"}) or sum by (cluster) (kube_statefulset_replicas{namespace="valkey"}) * 0) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: No Valkey instance is up, so squares caches and event streams are down
+        - alert: ValkeyInstanceDown
+          expr: redis_up{namespace="valkey"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.pod }} is down'
+        - alert: ValkeyMemoryHigh
+          expr: redis_memory_used_bytes{namespace="valkey"} / redis_memory_max_bytes{namespace="valkey"} > 0.9 and redis_memory_max_bytes{namespace="valkey"} > 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.pod }} is using {{ $value | humanizePercentage }} of its maxmemory'
+    - name: hardware
+      rules:
+        - alert: NodeTemperatureHigh
+          expr: max by (cluster, instance) (node_hwmon_temp_celsius{chip=~"thermal.*"}) > 75
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: '{{ $labels.instance }} CPU is at {{ $value | printf "%.0f" }}°C; Pis throttle around 80°C'
