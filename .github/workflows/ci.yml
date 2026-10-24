@@ -37,7 +37,7 @@ jobs:
             values_files: infrastructure/kured/values.yaml
           - chart: oci://docker.io/cloudpirates/valkey
             # renovate: datasource=docker depName=docker.io/cloudpirates/valkey
-            chart_version: '0.25.13'
+            chart_version: '0.25.15'
             values_files: infrastructure/valkey/values.yaml
           - chart: cnpg/cloudnative-pg
             # renovate: datasource=helm depName=cloudnative-pg registryUrl=https://cloudnative-pg.github.io/charts
