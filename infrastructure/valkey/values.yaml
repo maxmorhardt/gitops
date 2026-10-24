@@ -47,7 +47,6 @@ affinity:
 sentinel:
   enabled: true
   masterName: valkey
-  # Sentinel enters tilt and HAProxy checks time out when CPU-throttled
   resources:
     requests:
       cpu: 10m

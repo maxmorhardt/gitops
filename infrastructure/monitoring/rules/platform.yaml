@@ -73,7 +73,6 @@ spec:
             severity: critical
           annotations:
             summary: '{{ $labels.namespace }}/{{ $labels.deployment }} has no ready pods'
-        # with every pod gone there is no redis_up at all, so the statefulset stands in as zero
         - alert: ValkeyDown
           expr: (sum by (cluster) (redis_up{namespace="valkey"}) or sum by (cluster) (kube_statefulset_replicas{namespace="valkey"}) * 0) == 0
           for: 5m
