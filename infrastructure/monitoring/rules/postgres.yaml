@@ -1,0 +1,157 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: postgres
+  namespace: monitoring
+spec:
+  groups:
+    # copied from the cnpg cluster chart's rules, whose group can't set an interval
+    - name: postgres
+      interval: 1m
+      rules:
+        - alert: CNPGClusterHACritical
+          annotations:
+            summary: CNPG Cluster has no standby replicas!
+            description: |-
+              CloudNativePG Cluster "{{ $labels.job }}" has no ready standby replicas. Your cluster at a severe
+              risk of data loss and downtime if the primary instance fails.
+
+              The primary instance is still online and able to serve queries, although connections to the `-ro` endpoint
+              will fail. The `-r` endpoint os operating at reduced capacity and all traffic is being served by the main.
+
+              This can happen during a normal fail-over or automated minor version upgrades in a cluster with 2 or less
+              instances. The replaced instance may need some time to catch-up with the cluster primary instance.
+
+              This alarm will be always trigger if your cluster is configured to run with only 1 instance. In this
+              case you may want to silence it.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHACritical.md
+          expr: |
+            max by (job) (cnpg_pg_replication_streaming_replicas{namespace="cnpg-database"} - cnpg_pg_replication_is_wal_receiver_up{namespace="cnpg-database"}) < 1
+              and on (job)
+            (max by (job) (cnpg_collector_replica_mode{namespace="cnpg-database"}) == 0)
+          for: 5m
+          labels:
+            severity: critical
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterHighConnectionsCritical
+          annotations:
+            summary: CNPG Instance maximum number of connections critical!
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" instance {{ $labels.pod }} is using {{ $value }}% of
+              the maximum number of connections.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHighConnectionsCritical.md
+          expr: |
+            sum by (pod) (cnpg_backends_total{namespace="cnpg-database", pod=~"postgres-cluster-([1-9][0-9]*)$"}) / max by (pod) (cnpg_pg_settings_setting{name="max_connections", namespace="cnpg-database", pod=~"postgres-cluster-([1-9][0-9]*)$"}) * 100 > 95
+          for: 5m
+          labels:
+            severity: critical
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterHighConnectionsWarning
+          annotations:
+            summary: CNPG Instance is approaching the maximum number of connections.
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" instance {{ $labels.pod }} is using {{ $value }}% of
+              the maximum number of connections.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHighConnectionsWarning.md
+          expr: |
+            sum by (pod) (cnpg_backends_total{namespace="cnpg-database", pod=~"postgres-cluster-([1-9][0-9]*)$"}) / max by (pod) (cnpg_pg_settings_setting{name="max_connections", namespace="cnpg-database", pod=~"postgres-cluster-([1-9][0-9]*)$"}) * 100 > 80
+          for: 5m
+          labels:
+            severity: warning
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterHighReplicationLag
+          annotations:
+            summary: CNPG Cluster high replication lag
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" is experiencing a high replication lag of
+              {{ $value }}s.
+
+              High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterHighReplicationLag.md
+          expr: |
+            max(cnpg_pg_replication_lag{namespace="cnpg-database",pod=~"postgres-cluster-([1-9][0-9]*)$"}) > 1
+          for: 5m
+          labels:
+            severity: warning
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGInstanceMetricsAbsent
+          annotations:
+            summary: CNPG instance metrics exporter is hung
+            description: |-
+              CloudNativePG instance "cnpg-database/{{ $labels.pod }}" has had an unreachable metrics endpoint for 10 minutes, so its metrics exporter is hung.
+
+              The lag, HA and replication alerts all read from this exporter and will not fire while it is down. A hung exporter has previously coincided with a frozen standby, so physical replication may be stuck and unmonitored. Check the instance directly.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGInstanceMetricsAbsent.md
+          expr: |
+            up{namespace="cnpg-database",pod=~"postgres-cluster-([1-9][0-9]*)$"} == 0
+          for: 10m
+          labels:
+            severity: critical
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterInstancesOnSameNode
+          annotations:
+            summary: CNPG Cluster instances are located on the same node.
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" has {{ $value }}
+              instances on the same node {{ $labels.node }}.
+
+              A failure or scheduled downtime of a single node will lead to a potential service disruption and/or data loss.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterInstancesOnSameNode.md
+          expr: |
+            count by (node) (kube_pod_info{namespace="cnpg-database", pod=~"postgres-cluster-([1-9][0-9]*)$"}) > 1
+          for: 5m
+          labels:
+            severity: warning
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterOffline
+          annotations:
+            summary: CNPG Cluster has no running instances!
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" has no ready instances.
+
+              Having an offline cluster means your applications will not be able to access the database, leading to
+              potential service disruption and/or data loss.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterOffline.md
+          expr: |
+            (count(cnpg_collector_up{namespace="cnpg-database",pod=~"postgres-cluster-([1-9][0-9]*)$"}) OR on() vector(0)) == 0
+          for: 5m
+          labels:
+            severity: critical
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterPhysicalReplicationLagCritical
+          annotations:
+            summary: CNPG Cluster very high physical replication lag
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" is experiencing a very high physical replication lag of {{ $value }}ms.
+
+              High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+          expr: |
+            max(cnpg_pg_replication_lag{namespace="cnpg-database",pod=~"postgres-cluster-([1-9][0-9]*)$"}) > 15
+          for: 5m
+          labels:
+            severity: critical
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster
+        - alert: CNPGClusterPhysicalReplicationLagWarning
+          annotations:
+            summary: CNPG Cluster high physical replication lag
+            description: |-
+              CloudNativePG Cluster "cnpg-database/postgres-cluster" is experiencing a high physical replication lag of {{ $value }}ms.
+
+              High replication lag indicates network issues, busy instances, slow queries or suboptimal configuration.
+            runbook_url: https://github.com/cloudnative-pg/charts/blob/main/charts/cluster/docs/runbooks/CNPGClusterPhysicalReplicationLag.md
+          expr: |
+            max(cnpg_pg_replication_lag{namespace="cnpg-database",pod=~"postgres-cluster-([1-9][0-9]*)$"}) > 1
+          for: 5m
+          labels:
+            severity: warning
+            namespace: cnpg-database
+            cnpg_cluster: postgres-cluster

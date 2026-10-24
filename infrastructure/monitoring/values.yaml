@@ -10,10 +10,9 @@ destinations:
       create: false
       name: grafana-cloud-metrics
     clusterLabels: [cluster]
+    # rules sync into Grafana instead, through collectors.alloy-singleton.extraConfig
     rules:
-      enabled: true
-      collector: alloy-singleton
-      addressFrom: string.trim_suffix(convert.nonsensitive(remote.kubernetes.secret.grafanacloudmetrics.data["url"]), "/api/prom/push")
+      enabled: false
   grafanaCloudLogs:
     type: loki
     urlFrom: convert.nonsensitive(remote.kubernetes.secret.grafanacloudlogs.data["url"])
@@ -236,3 +235,30 @@ collectors:
     presets: [filesystem-log-reader, daemonset]
   alloy-singleton:
     presets: [singleton]
+    # Grafana Cloud's ruler has no Alertmanager on this stack, so PrometheusRules become Grafana-managed rules
+    extraConfig: |
+      remote.kubernetes.secret "grafana_rules" {
+        name      = "grafana-rules"
+        namespace = "monitoring"
+      }
+
+      mimir.rules.kubernetes "grafana" {
+        address                = "https://maxhqio.grafana.net"
+        prometheus_http_prefix = "/api/convert/prometheus"
+        mimir_namespace_prefix = "{{ .Values.cluster.name }}"
+        http_headers = {
+          "X-Grafana-Alerting-Datasource-UID" = ["grafanacloud-prom"],
+          "X-Grafana-Alerting-Folder-UID"     = ["repo-alerts"],
+        }
+        authorization {
+          type        = "Bearer"
+          credentials = remote.kubernetes.secret.grafana_rules.data["token"]
+        }
+        extra_query_matchers {
+          matcher {
+            name       = "cluster"
+            match_type = "="
+            value      = "{{ .Values.cluster.name }}"
+          }
+        }
+      }

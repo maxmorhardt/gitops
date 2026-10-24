@@ -24,18 +24,27 @@ count by (cluster) ({__name__=~".+"})
 
 ## Alerts
 
-Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `alloy-singleton`. The same Application applies everything in [`rules/`](rules/):
+Every `PrometheusRule` in the cluster becomes a Grafana-managed alert rule. `alloy-singleton` syncs them through Grafana's Prometheus rule conversion API (`/api/convert/prometheus`) into the `repo alerts` folder, one subfolder per PrometheusRule, prefixed with the cluster. They query `grafanacloud-prom` filtered to their own `cluster`, and notify through the notification policy below.
+
+Grafana Cloud's own ruler would evaluate them too, but this stack has no Cloud Alertmanager behind it, so its alerts reach nobody. Prod still syncs there until it switches over; see `values-prod.yaml`.
+
+Give every rule group an `interval`. Grafana stores 1m on a group that has none, so Alloy sees a difference and rewrites the group on every sync.
+
+The same Application applies everything in [`rules/`](rules/):
 
 - [`workloads.yaml`](rules/workloads.yaml): pods, deployments, statefulsets, daemonsets, jobs, resource overcommit, volumes, and down scrape targets.
 - [`nodes.yaml`](rules/nodes.yaml): node readiness and pressure, kubelet health and certificates, and node-exporter's disk, network, clock, and memory alerts.
 - [`recording.yaml`](rules/recording.yaml): the three recording rules the alerts read.
+- [`postgres.yaml`](rules/postgres.yaml): the CloudNativePG cluster chart's alerts that work here, copied because the chart's own group can't set an interval.
 - [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, `MetricsStopped`, app deployments with no ready pods, Valkey, and Pi temperatures.
 
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
 ### Set up by hand in Grafana
 
-Two pieces live in the stack's UI rather than in git, so a new stack needs them recreated:
+These live in the stack's UI rather than in git, so a new stack needs them recreated:
+
+- **Rule sync**: the `repo alerts` folder (uid `repo-alerts`), and a service account `alloy-rules` with the Admin role. Its token is the sealed `monitoring/grafana-rules` secret in each cluster.
 
 - **Notification routing**, in Alerting > Notification configuration:
   - Contact point `alerts`, with two integrations that both fire on every alert:
@@ -45,7 +54,7 @@ Two pieces live in the stack's UI rather than in git, so a new stack needs them 
   - A child route `severity = info` that sends to `empty`, a contact point with no integrations, which silences info alerts.
 
   Discord sometimes rate-limits Grafana Cloud's shared IPs (a 429 on the contact point test), which is why email is there too. Alertmanager also retries at each group interval until Discord gets through.
-- **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because the ruler can't query the usage data source.
+- **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because synced rules only query the metrics data source.
 
 ## Dashboards
 
