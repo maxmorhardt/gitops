@@ -43,7 +43,7 @@ Two pieces live in the stack's UI rather than in git, so a new stack needs them 
   - A child route `severity = info` that sends to `empty`, a contact point with no integrations, which silences info alerts.
 
   Discord sometimes rate-limits Grafana Cloud's shared IPs (a 429 on the contact point test). Alertmanager retries at each group interval until it gets through.
-- **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `monitoring` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because the ruler can't query the usage data source.
+- **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because the ruler can't query the usage data source.
 
 ## Dashboards
 
