@@ -9,6 +9,7 @@ destinations:
     secret:
       create: false
       name: grafana-cloud-metrics
+    clusterLabels: [cluster]
     rules:
       enabled: true
       collector: alloy-singleton
@@ -23,13 +24,81 @@ destinations:
     secret:
       create: false
       name: grafana-cloud-logs
+    clusterLabels: [cluster]
 
+# every source keeps only what the rules and dashboards read; see the README before adding to a dashboard
 clusterMetrics:
   enabled: true
   collector: alloy-metrics
+  kubelet:
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - kubelet_certificate_manager_client_expiration_renew_errors
+        - kubelet_certificate_manager_client_ttl_seconds
+        - kubelet_certificate_manager_server_ttl_seconds
+        - kubelet_evictions
+        - kubelet_node_name
+        - kubelet_pleg_relist_duration_seconds_bucket
+        - kubelet_pod_worker_duration_seconds_bucket
+        - kubelet_running_pods
+        - kubelet_server_expiration_renew_errors
+        - kubelet_volume_stats_.*
+        - kubernetes_build_info
+  kubeletResource:
+    enabled: false
+  cadvisor:
+    metricsTuning:
+      useDefaultAllowList: false
+      includeMetrics:
+        - container_cpu_cfs_periods_total
+        - container_cpu_cfs_throttled_periods_total
+        - container_cpu_usage_seconds_total
+        - container_memory_working_set_bytes
+        - container_network_receive_bytes_total
+        - container_network_transmit_bytes_total
   kube-state-metrics:
     metricsTuning:
-      includeMetrics: [kube_poddisruptionbudget_status_expected_pods]
+      useDefaultAllowList: false
+      includeMetrics:
+        - kube_daemonset_status_.*
+        - kube_deployment_metadata_generation
+        - kube_deployment_spec_replicas
+        - kube_deployment_status_condition
+        - kube_deployment_status_observed_generation
+        - kube_deployment_status_replicas_available
+        - kube_deployment_status_replicas_updated
+        - kube_horizontalpodautoscaler_spec_(min|max)_replicas
+        - kube_horizontalpodautoscaler_status_(current|desired)_replicas
+        - kube_job_created
+        - kube_job_failed
+        - kube_job_labels
+        - kube_job_status_active
+        - kube_job_status_start_time
+        - kube_node_info
+        - kube_node_role
+        - kube_node_spec_taint
+        - kube_node_spec_unschedulable
+        - kube_node_status_allocatable
+        - kube_node_status_capacity
+        - kube_node_status_condition
+        - kube_persistentvolume_status_phase
+        - kube_persistentvolumeclaim_access_mode
+        - kube_persistentvolumeclaim_labels
+        - kube_pod_container_resource_limits
+        - kube_pod_container_resource_requests
+        - kube_pod_container_status_restarts_total
+        - kube_pod_container_status_waiting_reason
+        - kube_pod_info
+        - kube_pod_owner
+        - kube_pod_status_phase
+        - kube_pod_status_ready
+        - kube_pod_status_reason
+        - kube_poddisruptionbudget_status_.*
+        - kube_resourcequota
+        - kube_statefulset_metadata_generation
+        - kube_statefulset_replicas
+        - kube_statefulset_status_.*
 
 hostMetrics:
   enabled: true
@@ -37,23 +106,33 @@ hostMetrics:
   linuxHosts:
     enabled: true
     metricsTuning:
+      useDefaultAllowList: false
       includeMetrics:
-        - node_disk_.*
-        - node_filefd_.*
-        - node_load.*
-        - node_md_.*
-        - node_network_(receive|transmit)_(errs|packets)_total
+        - node_boot_time_seconds
+        - node_cpu_scaling_frequency_hertz
+        - node_cpu_seconds_total
+        - node_disk_io_time_weighted_seconds_total
+        - node_filefd_(allocated|maximum)
+        - node_filesystem_(avail_bytes|files|files_free|readonly|size_bytes)
+        - node_hwmon_temp_celsius
+        - node_load(1|5)
+        - node_md_disks.*
+        - node_memory_(MemAvailable|MemTotal)_bytes
+        - node_network_(receive|transmit)_(bytes|errs|packets)_total
         - node_network_up
-        - node_nf_conntrack_.*
+        - node_nf_conntrack_entries(_limit)?
         - node_textfile_scrape_error
-        - node_time_seconds
-        - node_timex_.*
-        - node_uname_info
+        - node_timex_(maxerror_seconds|offset_seconds|sync_status)
         - node_vmstat_pgmajfault
     extraMetricProcessingRules: |
       rule {
         source_labels = ["__name__", "device"]
         regex         = "node_network_.+;(veth|cni|flannel).*"
+        action        = "drop"
+      }
+      rule {
+        source_labels = ["__name__", "fstype"]
+        regex         = "node_filesystem_.+;(tmpfs|ramfs|squashfs|overlay)"
         action        = "drop"
       }
 
@@ -68,6 +147,60 @@ podLogsViaLoki:
 prometheusOperatorObjects:
   enabled: true
   collector: alloy-metrics
+  # apps keep everything but runtime metrics; other ServiceMonitors keep only the names listed
+  serviceMonitors:
+    extraMetricProcessingRules: |
+      rule {
+        source_labels = ["namespace"]
+        regex         = "squares|olympics|maxhq|ages"
+        target_label  = "__keep"
+        replacement   = "true"
+      }
+      rule {
+        source_labels = ["__name__"]
+        regex         = "(go|process|promhttp|scrape)_.+"
+        target_label  = "__keep"
+        replacement   = "false"
+      }
+      rule {
+        source_labels = ["__name__"]
+        regex         = "up|go_sql_(in_use|max_open)_connections|argocd_app_info|certmanager_certificate_expiration_timestamp_seconds|kured_reboot_required|redis_(up|connected_clients|commands_processed_total|memory_used_bytes|memory_max_bytes)"
+        target_label  = "__keep"
+        replacement   = "true"
+      }
+      rule {
+        source_labels = ["__keep"]
+        regex         = "true"
+        action        = "keep"
+      }
+      rule {
+        regex  = "__keep"
+        action = "labeldrop"
+      }
+      rule {
+        source_labels = ["__name__", "le"]
+        regex         = "http_request_duration_seconds_bucket;(0\\.01|0\\.025|0\\.05|0\\.25|10(\\.0)?|30(\\.0)?)"
+        action        = "drop"
+      }
+  podMonitors:
+    metricsTuning:
+      includeMetrics:
+        - cnpg_backends_total
+        - cnpg_collector_last_(available|failed)_backup_timestamp
+        - cnpg_collector_up
+        - cnpg_pg_database_size_bytes
+        - cnpg_pg_replication_lag
+    # CNPG labels some metrics with its own cluster name, which would hide the k8s cluster label
+    extraMetricProcessingRules: |
+      rule {
+        source_labels = ["cluster"]
+        regex         = "(.+)"
+        target_label  = "pg_cluster"
+      }
+      rule {
+        regex  = "cluster"
+        action = "labeldrop"
+      }
 
 annotationAutodiscovery:
   enabled: true
@@ -76,6 +209,8 @@ annotationAutodiscovery:
     scrape: prometheus.io/scrape
     metricsPath: prometheus.io/path
     metricsPortNumber: prometheus.io/port
+  metricsTuning:
+    includeMetrics: [envoy_cluster_upstream_rq_total, envoy_cluster_upstream_rq_xx]
 
 telemetryServices:
   kube-state-metrics:

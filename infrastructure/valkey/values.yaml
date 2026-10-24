@@ -75,3 +75,4 @@ metrics:
       memory: 64Mi
   serviceMonitor:
     enabled: true
+    interval: 60s

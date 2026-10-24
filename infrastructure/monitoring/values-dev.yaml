@@ -8,7 +8,7 @@ destinations:
       extraArguments: |
         extra_query_matchers {
           matcher {
-            name       = "k8s_cluster_name"
+            name       = "cluster"
             match_type = "="
             value      = "dev"
           }
