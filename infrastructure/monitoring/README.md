@@ -26,7 +26,7 @@ count by (cluster) ({__name__=~".+"})
 
 Every `PrometheusRule` in the cluster becomes a Grafana-managed alert rule. `alloy-singleton` syncs them through Grafana's Prometheus rule conversion API (`/api/convert/prometheus`) into the `repo alerts` folder, one subfolder per PrometheusRule, prefixed with the cluster. They query `grafanacloud-prom` filtered to their own `cluster`, and notify through the notification policy below.
 
-Grafana Cloud's own ruler would evaluate them too, but this stack has no Cloud Alertmanager behind it, so its alerts reach nobody. Prod still syncs there until it switches over; see `values-prod.yaml`.
+Grafana Cloud's own ruler could evaluate them instead, but this stack has no Cloud Alertmanager behind it, so its alerts would reach nobody.
 
 Give every rule group an `interval`. Grafana stores 1m on a group that has none, so Alloy sees a difference and rewrites the group on every sync.
 
