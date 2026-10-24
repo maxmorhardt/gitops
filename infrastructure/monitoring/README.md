@@ -18,11 +18,6 @@ The stack is on Grafana Cloud's free tier: 10k active series across both cluster
 
 Every source keeps only the metrics the rules and dashboards read, listed in [`values.yaml`](values.yaml):
 
-- **kubelet, cAdvisor, kube-state-metrics, node-exporter, PodMonitors, Envoy:** an `includeMetrics` list each.
-- **ServiceMonitors:** the app namespaces (`squares`, `olympics`, `maxhq`, `ages`) keep everything except Go runtime and process metrics. Everything else keeps only the names in the third `rule`. App latency histograms keep the 0.1s, 0.5s, 1s, 2.5s, and 5s buckets.
-
-A new rule or dashboard panel shows no data until its metric is added to the matching list. Check the count after a change, in Explore against the metrics data source:
-
 ```promql
 count by (cluster) ({__name__=~".+"})
 ```

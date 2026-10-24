@@ -26,7 +26,6 @@ destinations:
       name: grafana-cloud-logs
     clusterLabels: [cluster]
 
-# every source keeps only what the rules and dashboards read; see the README before adding to a dashboard
 clusterMetrics:
   enabled: true
   collector: alloy-metrics
@@ -147,7 +146,7 @@ podLogsViaLoki:
 prometheusOperatorObjects:
   enabled: true
   collector: alloy-metrics
-  # apps keep everything but runtime metrics; other ServiceMonitors keep only the names listed
+  # apps keep everything but runtime metrics
   serviceMonitors:
     extraMetricProcessingRules: |
       rule {
@@ -190,7 +189,7 @@ prometheusOperatorObjects:
         - cnpg_collector_up
         - cnpg_pg_database_size_bytes
         - cnpg_pg_replication_lag
-    # CNPG labels some metrics with its own cluster name, which would hide the k8s cluster label
+    # fix cnpg labeling with its own cluster name
     extraMetricProcessingRules: |
       rule {
         source_labels = ["cluster"]

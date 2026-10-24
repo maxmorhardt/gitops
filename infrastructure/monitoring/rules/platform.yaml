@@ -7,7 +7,6 @@ spec:
   groups:
     - name: platform
       rules:
-        # evaluated in grafana cloud, so it fires when the cluster or alloy stops sending anything
         - alert: MetricsStopped
           expr: absent_over_time(up{job="integrations/kubernetes/kubelet"}[10m])
           for: 5m
