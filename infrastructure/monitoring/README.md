@@ -33,6 +33,20 @@ Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `all
 
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
+### Set up by hand in Grafana
+
+Two pieces live in the stack's UI rather than in git, so a new stack needs them recreated:
+
+- **Notification routing**, in Alerting > Notification configuration:
+  - Contact point `alerts`, with two integrations that both fire on every alert:
+    - Discord, with the alerts channel's webhook URL, using Discord's webhook username and showing the message in an embed;
+    - email, as the backup.
+  - Default notification policy: sends to `alerts`, grouped by `alertname` and `cluster`.
+  - A child route `severity = info` that sends to `empty`, a contact point with no integrations, which silences info alerts.
+
+  Discord sometimes rate-limits Grafana Cloud's shared IPs (a 429 on the contact point test), which is why email is there too. Alertmanager also retries at each group interval until Discord gets through.
+- **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because the ruler can't query the usage data source.
+
 ## Dashboards
 
 - **[Cluster](dashboards/cluster.json):** health at a glance, nodes (CPU, memory, disk, network, Pi CPU and NVMe temperatures, CPU frequency), CPU and memory by namespace, pods not running and restarts, gateway traffic and errors by route, and Argo CD, Postgres, Valkey, certificates, and kured.
