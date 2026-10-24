@@ -45,6 +45,17 @@ cluster:
       enabled: true
     prometheusRule:
       enabled: true
+      # no logical replication or zones, and local-path doesn't report volume usage
+      excludeRules:
+        - CNPGClusterLogicalReplicationErrors
+        - CNPGClusterLogicalReplicationErrorsCritical
+        - CNPGClusterLogicalReplicationLagging
+        - CNPGClusterLogicalReplicationLaggingCritical
+        - CNPGClusterLogicalReplicationStopped
+        - CNPGClusterLogicalReplicationStoppedCritical
+        - CNPGClusterLowDiskSpaceWarning
+        - CNPGClusterLowDiskSpaceCritical
+        - CNPGClusterZoneSpreadWarning
   postgresql:
     parameters:
       max_connections: '300'

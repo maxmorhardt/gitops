@@ -44,7 +44,7 @@ spec:
           annotations:
             summary: The last Postgres backup failed
         - alert: PostgresBackupStale
-          expr: time() - cnpg_collector_last_available_backup_timestamp > 26 * 3600
+          expr: time() - max by (cluster) (cnpg_collector_last_available_backup_timestamp > 0) > 26 * 3600
           for: 1h
           labels:
             severity: critical
