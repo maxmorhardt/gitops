@@ -6,6 +6,7 @@ metadata:
 spec:
   groups:
     - name: platform
+      interval: 1m
       rules:
         - alert: MetricsStopped
           expr: absent_over_time(up{job="integrations/kubernetes/kubelet"}[10m])
@@ -65,6 +66,7 @@ spec:
           annotations:
             summary: '{{ $labels.name }} has been OutOfSync for 30 minutes'
     - name: services
+      interval: 1m
       rules:
         - alert: AppDown
           expr: kube_deployment_status_replicas_available{namespace=~"squares|olympics|maxhq|ages"} == 0 and kube_deployment_spec_replicas{namespace=~"squares|olympics|maxhq|ages"} > 0
@@ -95,6 +97,7 @@ spec:
           annotations:
             summary: '{{ $labels.pod }} is using {{ $value | humanizePercentage }} of its maxmemory'
     - name: hardware
+      interval: 1m
       rules:
         - alert: NodeTemperatureHigh
           expr: max by (cluster, instance) (node_hwmon_temp_celsius{chip=~"thermal.*"}) > 75

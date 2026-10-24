@@ -6,6 +6,7 @@ metadata:
 spec:
   groups:
     - name: kubernetes-apps
+      interval: 1m
       rules:
         - alert: KubePodCrashLooping
           annotations:
@@ -281,6 +282,7 @@ spec:
           labels:
             severity: warning
     - name: kubernetes-resources
+      interval: 1m
       rules:
         - alert: KubeCPUOvercommit
           annotations:
@@ -374,6 +376,7 @@ spec:
           labels:
             severity: info
     - name: kubernetes-storage
+      interval: 1m
       rules:
         - alert: KubePersistentVolumeErrors
           annotations:
@@ -385,6 +388,7 @@ spec:
           labels:
             severity: critical
     - name: general.rules
+      interval: 1m
       rules:
         - alert: TargetDown
           annotations:

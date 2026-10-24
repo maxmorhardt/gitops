@@ -6,6 +6,7 @@ metadata:
 spec:
   groups:
     - name: k8s.rules.container_resource
+      interval: 1m
       rules:
         - expr: |-
             sum by (namespace, cluster) (
@@ -30,6 +31,7 @@ spec:
             )
           record: namespace_cpu:kube_pod_container_resource_requests:sum
     - name: kubelet.rules
+      interval: 1m
       rules:
         - expr: |-
             histogram_quantile(

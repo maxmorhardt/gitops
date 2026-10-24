@@ -6,6 +6,7 @@ metadata:
 spec:
   groups:
     - name: kubernetes-system-kubelet
+      interval: 1m
       rules:
         - alert: KubeNodeNotReady
           annotations:
@@ -173,6 +174,7 @@ spec:
           labels:
             severity: critical
     - name: kubernetes-system
+      interval: 1m
       rules:
         - alert: KubeVersionMismatch
           annotations:
@@ -184,6 +186,7 @@ spec:
           labels:
             severity: warning
     - name: node-network
+      interval: 1m
       rules:
         - alert: NodeNetworkInterfaceFlapping
           annotations:
@@ -195,6 +198,7 @@ spec:
           labels:
             severity: warning
     - name: node-exporter-filesystem
+      interval: 1m
       rules:
         - alert: NodeFilesystemSpaceFillingUp
           annotations:
@@ -317,6 +321,7 @@ spec:
           labels:
             severity: critical
     - name: node-exporter
+      interval: 1m
       rules:
         - alert: NodeNetworkReceiveErrs
           annotations:

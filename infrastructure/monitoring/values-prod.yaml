@@ -1,9 +1,13 @@
 cluster:
   name: prod
 
+# prod keeps syncing to Grafana Cloud's ruler until dev is verified on Grafana-managed rules
 destinations:
   grafanaCloudMetrics:
     rules:
+      enabled: true
+      collector: alloy-singleton
+      addressFrom: string.trim_suffix(convert.nonsensitive(remote.kubernetes.secret.grafanacloudmetrics.data["url"]), "/api/prom/push")
       mimirNamespacePrefix: prod
       extraArguments: |
         extra_query_matchers {
@@ -13,3 +17,7 @@ destinations:
             value      = "prod"
           }
         }
+
+collectors:
+  alloy-singleton:
+    extraConfig: ""
