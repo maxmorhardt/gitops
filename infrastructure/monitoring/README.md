@@ -1,16 +1,31 @@
 # monitoring
 
-[Grafana `k8s-monitoring`](https://github.com/grafana/k8s-monitoring-helm) runs Grafana Alloy in each cluster and ships everything to Grafana Cloud, labelled with `k8s_cluster_name` and `cluster` (`dev` or `prod`).
+[Grafana `k8s-monitoring`](https://github.com/grafana/k8s-monitoring-helm) runs Grafana Alloy in each cluster and ships everything to Grafana Cloud, labelled with `cluster` (`dev` or `prod`).
 
 What Alloy collects, and how:
 
 | what | how |
 | --- | --- |
 | pod and object metrics | `clusterMetrics`: kubelet, cAdvisor, and kube-state-metrics |
-| node metrics | `hostMetrics`: node-exporter |
-| app, Postgres, Argo CD, Valkey, sealed-secrets, kured metrics | `prometheusOperatorObjects`: every ServiceMonitor and PodMonitor in the cluster |
+| node metrics, including Pi temperatures | `hostMetrics`: node-exporter |
+| app, Postgres, Argo CD, Valkey, cert-manager, kured metrics | `prometheusOperatorObjects`: every ServiceMonitor and PodMonitor in the cluster |
 | Envoy proxy metrics | `annotationAutodiscovery`, reading the `prometheus.io/*` annotations Envoy Gateway puts on its proxy pods |
 | pod logs and Kubernetes events | `podLogsViaLoki`, `clusterEvents` |
+
+## Series budget
+
+The stack is on Grafana Cloud's free tier: 10k active series across both clusters, at one sample per minute each. A series scraped every 30s counts twice, so give ServiceMonitors a 60s interval. Each cluster sends about 3.3k.
+
+Every source keeps only the metrics the rules and dashboards read, listed in [`values.yaml`](values.yaml):
+
+- **kubelet, cAdvisor, kube-state-metrics, node-exporter, PodMonitors, Envoy:** an `includeMetrics` list each.
+- **ServiceMonitors:** the app namespaces (`squares`, `olympics`, `maxhq`, `ages`) keep everything except Go runtime and process metrics. Everything else keeps only the names in the third `rule`. App latency histograms keep the 0.1s, 0.5s, 1s, 2.5s, and 5s buckets.
+
+A new rule or dashboard panel shows no data until its metric is added to the matching list. Check the count after a change, in Explore against the metrics data source:
+
+```promql
+count by (cluster) ({__name__=~".+"})
+```
 
 ## Alerts
 
@@ -18,30 +33,25 @@ Every `PrometheusRule` in the cluster is synced to Grafana Cloud's ruler by `all
 
 - [`workloads.yaml`](rules/workloads.yaml): pods, deployments, statefulsets, daemonsets, jobs, resource overcommit, volumes, and down scrape targets.
 - [`nodes.yaml`](rules/nodes.yaml): node readiness and pressure, kubelet health and certificates, and node-exporter's disk, network, clock, and memory alerts.
-- [`recording.yaml`](rules/recording.yaml): the recording rules the alerts and the kubernetes dashboards read.
+- [`recording.yaml`](rules/recording.yaml): the three recording rules the alerts read.
 - [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, and `MetricsStopped`.
 
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
 The first three come from kube-prometheus-stack (originally from the kubernetes and node mixins), copied once with their `job` selectors changed to Alloy's: `integrations/kubernetes/kubelet`, `.../cadvisor`, `.../kube-state-metrics`, and `integrations/node_exporter`. Edit them in place. Groups for things Alloy doesn't scrape on k3s were left out: the API server, scheduler, controller manager, etcd, and kube-state-metrics' own metrics.
 
-The extra metrics these rules read, beyond Grafana's default allowlists, are listed under `includeMetrics` in [`values.yaml`](values.yaml).
-
-Each app chart also ships its own rules. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries series with its own `k8s_cluster_name`, so one stack holds both without duplicate alerts.
+Each app chart also ships its own rules. Each cluster syncs under its own namespace prefix (`dev`, `prod`) and only queries series with its own `cluster`, so one stack holds both without duplicate alerts.
 
 They evaluate in Grafana Cloud, so routing them to Discord is a one-time setup in the stack: Alerting > Contact points, choose the Grafana Cloud Alertmanager (not Grafana's), add a Discord contact point, and make it the default in its notification policy. The synced rules show under Alerting > Alert rules, as data source-managed rules.
 
 ## Dashboards
 
-Dashboard JSON in [`dashboards/`](dashboards/), one folder per type; import each folder into a Grafana folder of the same name:
+Dashboard JSON in [`dashboards/`](dashboards/). Import each into Grafana (Dashboards > New > Import); importing a changed file again with the same uid replaces the old one. Each picks its data sources and cluster through variables, and links to the others.
 
-- **[`kubernetes/`](dashboards/kubernetes/):** compute resources by cluster, namespace, node, workload, and pod, persistent volumes, and Node Exporter Full for each node.
-- **[`platform/`](dashboards/platform/):** Argo CD, CloudNativePG, kured, sealed-secrets, Valkey, and NGINX (the web frontends' nginx exporter sidecars).
-- **[`squares/`](dashboards/squares/):** one per squares service.
-
-Each dashboard picks its data source through a variable. Dev and prod share one stack, so each dashboard also selects a cluster.
+- **[Cluster](dashboards/cluster.json):** health at a glance, nodes (CPU, memory, disk, network, Pi CPU and NVMe temperatures, CPU frequency), CPU and memory by namespace, pods not running and restarts, gateway traffic and errors by route, and Argo CD, Postgres, Valkey, certificates, and kured.
+- **[Workloads](dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
+- **[Apps](dashboards/apps.json):** one API service's requests, 5xx rate, latency, endpoints, database connections, outbox backlog, and error logs, plus squares activity and the web frontends.
 
 ## Uptime
 
 Synthetic Monitoring checks are set up in the stack's UI (Testing & synthetics > Synthetics), with alerting on the check: `https://maxhq.io`, `https://squares.maxhq.io`, `https://api.maxhq.io/squares/stats`, `https://login.maxhq.io/.well-known/openid-configuration`, `https://olympics.maxhq.io`.
-
