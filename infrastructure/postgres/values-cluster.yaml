@@ -45,8 +45,9 @@ cluster:
       enabled: true
     prometheusRule:
       enabled: true
-      # no logical replication or zones, and local-path doesn't report volume usage
+      # no logical replication or zones, local-path doesn't report volume usage, and two instances leave one standby
       excludeRules:
+        - CNPGClusterHAWarning
         - CNPGClusterLogicalReplicationErrors
         - CNPGClusterLogicalReplicationErrorsCritical
         - CNPGClusterLogicalReplicationLagging
