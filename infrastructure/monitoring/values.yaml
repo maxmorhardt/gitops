@@ -33,7 +33,6 @@ clusterMetrics:
     metricsTuning:
       useDefaultAllowList: false
       includeMetrics:
-        - kubelet_certificate_manager_client_expiration_renew_errors
         - kubelet_certificate_manager_client_ttl_seconds
         - kubelet_certificate_manager_server_ttl_seconds
         - kubelet_evictions
@@ -41,8 +40,6 @@ clusterMetrics:
         - kubelet_pleg_relist_duration_seconds_bucket
         - kubelet_pod_worker_duration_seconds_bucket
         - kubelet_running_pods
-        - kubelet_server_expiration_renew_errors
-        - kubelet_volume_stats_.*
         - kubernetes_build_info
   kubeletResource:
     enabled: false
@@ -82,8 +79,6 @@ clusterMetrics:
         - kube_node_status_capacity
         - kube_node_status_condition
         - kube_persistentvolume_status_phase
-        - kube_persistentvolumeclaim_access_mode
-        - kube_persistentvolumeclaim_labels
         - kube_pod_container_resource_limits
         - kube_pod_container_resource_requests
         - kube_pod_container_status_restarts_total
@@ -94,7 +89,6 @@ clusterMetrics:
         - kube_pod_status_ready
         - kube_pod_status_reason
         - kube_poddisruptionbudget_status_.*
-        - kube_resourcequota
         - kube_statefulset_metadata_generation
         - kube_statefulset_replicas
         - kube_statefulset_status_.*
@@ -115,7 +109,6 @@ hostMetrics:
         - node_filesystem_(avail_bytes|files|files_free|readonly|size_bytes)
         - node_hwmon_temp_celsius
         - node_load(1|5)
-        - node_md_disks.*
         - node_memory_(MemAvailable|MemTotal)_bytes
         - node_network_(receive|transmit)_(bytes|errs|packets)_total
         - node_network_up

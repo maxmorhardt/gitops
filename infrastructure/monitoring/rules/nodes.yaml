@@ -151,24 +151,6 @@ spec:
           expr: kubelet_certificate_manager_server_ttl_seconds < 86400
           labels:
             severity: critical
-        - alert: KubeletClientCertificateRenewalErrors
-          annotations:
-            description: Kubelet on node {{ $labels.node }} has failed to renew its client certificate ({{ $value | humanize }} errors in the last 5 minutes) on cluster {{ $labels.cluster }}.
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletclientcertificaterenewalerrors
-            summary: Kubelet has failed to renew its client certificate.
-          expr: increase(kubelet_certificate_manager_client_expiration_renew_errors[5m]) > 0
-          for: 15m
-          labels:
-            severity: warning
-        - alert: KubeletServerCertificateRenewalErrors
-          annotations:
-            description: Kubelet on node {{ $labels.node }} has failed to renew its server certificate ({{ $value | humanize }} errors in the last 5 minutes) on cluster {{ $labels.cluster }}.
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/kubernetes/kubeletservercertificaterenewalerrors
-            summary: Kubelet has failed to renew its server certificate.
-          expr: increase(kubelet_server_expiration_renew_errors[5m]) > 0
-          for: 15m
-          labels:
-            severity: warning
         - alert: KubeletInstanceUnreachable
           annotations:
             description: A Kubelet instance has been unreachable for more than 15 minutes.
@@ -400,23 +382,6 @@ spec:
             and
             node_timex_maxerror_seconds{job="integrations/node_exporter"} >= 16
           for: 10m
-          labels:
-            severity: warning
-        - alert: NodeRAIDDegraded
-          annotations:
-            description: RAID array '{{ $labels.device }}' at {{ $labels.instance }} is in degraded state due to one or more disks failures. Number of spare drives is insufficient to fix issue automatically.
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/noderaiddegraded
-            summary: RAID Array is degraded.
-          expr: node_md_disks_required{job="integrations/node_exporter",device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)"} - ignoring (state) (node_md_disks{state="active",job="integrations/node_exporter",device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)"}) > 0
-          for: 15m
-          labels:
-            severity: critical
-        - alert: NodeRAIDDiskFailure
-          annotations:
-            description: At least one device in RAID array at {{ $labels.instance }} failed. Array '{{ $labels.device }}' needs attention and possibly a disk swap.
-            runbook_url: https://runbooks.prometheus-operator.dev/runbooks/node/noderaiddiskfailure
-            summary: Failed device in RAID array.
-          expr: node_md_disks{state="failed",job="integrations/node_exporter",device=~"(/dev/)?(mmcblk.p.+|nvme.+|rbd.+|sd.+|vd.+|xvd.+|dm-.+|md.+|dasd.+)"} > 0
           labels:
             severity: warning
         - alert: NodeFileDescriptorLimit
