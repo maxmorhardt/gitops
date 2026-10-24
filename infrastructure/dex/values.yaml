@@ -59,10 +59,10 @@ config:
   issuer: https://login.maxhq.io
 
   expiry:
-    idTokens: "12h"
+    idTokens: "168h"
     refreshTokens:
       validIfNotUsedFor: "720h"
-      absoluteLifetime: "2160h"
+      absoluteLifetime: "720h"
 
   web:
     allowedOrigins:
