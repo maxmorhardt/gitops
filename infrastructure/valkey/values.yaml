@@ -52,7 +52,7 @@ sentinel:
       cpu: 10m
       memory: 32Mi
     limits:
-      cpu: 100m
+      cpu: 500m
       memory: 64Mi
   masterProxy:
     enabled: true
@@ -61,7 +61,7 @@ sentinel:
         cpu: 10m
         memory: 32Mi
       limits:
-        cpu: 100m
+        cpu: 500m
         memory: 64Mi
 
 metrics:
