@@ -48,12 +48,12 @@ These live in the stack's UI rather than in git, so a new stack needs them recre
 
 - **Notification routing**, in Alerting > Notification configuration:
   - Contact point `alerts`, with two integrations that both fire on every alert:
-    - Discord, with the alerts channel's webhook URL, using Discord's webhook username and showing the message in an embed;
+    - Telegram, with the `@maxhqio_bot` bot token and chat ID `8753214944`;
     - email, as the backup.
   - Default notification policy: sends to `alerts`, grouped by `alertname` and `cluster`.
   - A child route `severity = info` that sends to `empty`, a contact point with no integrations, which silences info alerts.
 
-  Discord sometimes rate-limits Grafana Cloud's shared IPs (a 429 on the contact point test), which is why email is there too. Alertmanager also retries at each group interval until Discord gets through.
+  Email covers a Telegram outage, and Alertmanager retries at each group interval until a send gets through.
 - **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because synced rules only query the metrics data source.
 
 ## Dashboards

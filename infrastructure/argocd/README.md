@@ -29,10 +29,10 @@ scripts/secrets.sh set <cluster> dex/dex-env ARGOCD_CLIENT_SECRET=
 
 ## Notifications
 
-Every app posts to Discord when its health has been `Degraded` for 10 minutes and when a sync fails, prefixed with the cluster (`[dev]` or `[prod]`, from `notifications.context`). Successful deploys don't post: dev deploys on every merge, and prod releases already show in GitHub. The webhook lives in `argocd/argocd-notifications-secret`:
+Every app posts to Telegram when its health has been `Degraded` for 10 minutes and when a sync fails, prefixed with the cluster (`[dev]` or `[prod]`, from `notifications.context`). Successful deploys don't post: dev deploys on every merge, and prod releases already show in GitHub. The bot's API URL (`https://api.telegram.org/bot<token>`) lives in `argocd/argocd-notifications-secret`, and the chat ID is `notifications.context.telegramChatId`:
 
 ```bash
-scripts/secrets.sh new <cluster> argocd/argocd-notifications-secret --label app.kubernetes.io/part-of=argocd discord-webhook-url=
+scripts/secrets.sh new <cluster> argocd/argocd-notifications-secret --label app.kubernetes.io/part-of=argocd telegram-url=
 ```
 
 ## Notes

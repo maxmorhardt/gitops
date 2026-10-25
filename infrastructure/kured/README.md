@@ -16,8 +16,8 @@ Pre-reboot logs are written to `/var/log/kured/pre-reboot-<date>.log` on each no
 
 Bootstrap must have run on all nodes (deploys `/usr/local/bin/pre-reboot.sh`).
 
-The sealed `kube-system/kured-discord` secret holds the Discord webhook (`url`, in Shoutrrr form
-`discord://<token>@<id>`); change it with `scripts/secrets.sh set <cluster> kube-system/kured-discord url=`.
+The sealed `kube-system/kured-telegram` secret holds the Telegram target (`url`, in Shoutrrr form
+`telegram://<bot token>@telegram?chats=<chat id>`); change it with `scripts/secrets.sh set <cluster> kube-system/kured-telegram url=`.
 
 ## Notes
 
