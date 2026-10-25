@@ -24,7 +24,7 @@ count by (cluster) ({__name__=~".+"})
 
 ## Alerts
 
-Every `PrometheusRule` in the cluster becomes a Grafana-managed alert rule. `alloy-singleton` syncs them through Grafana's Prometheus rule conversion API (`/api/convert/prometheus`) into the `repo alerts` folder, one subfolder per PrometheusRule, prefixed with the cluster. They query `grafanacloud-prom` filtered to their own `cluster`, and notify through the notification policy below.
+Every `PrometheusRule` in the cluster becomes a Grafana-managed alert rule. `alloy-singleton` syncs them through Grafana's Prometheus rule conversion API (`/api/convert/prometheus`) into the `repo alerts` folder, one subfolder per PrometheusRule, prefixed with the cluster. They query `grafanacloud-prom` filtered to their own `cluster`, carry a `cluster` label even when the expression aggregates it away, and notify through the notification policy below.
 
 Grafana Cloud's own ruler could evaluate them instead, but this stack has no Cloud Alertmanager behind it, so its alerts would reach nobody.
 

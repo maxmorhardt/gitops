@@ -222,6 +222,11 @@ annotationAutodiscovery:
   metricsTuning:
     includeMetrics: [envoy_cluster_upstream_rq_total, envoy_cluster_upstream_rq_xx]
 
+# Argo CD turns the pre-delete hook into Application finalizers that root then strips, so root never stays synced
+alloy-operator:
+  waitForAlloyRemoval:
+    enabled: false
+
 telemetryServices:
   kube-state-metrics:
     deploy: true
@@ -253,6 +258,10 @@ collectors:
         authorization {
           type        = "Bearer"
           credentials = remote.kubernetes.secret.grafana_rules.data["token"]
+        }
+        // aggregating rules drop cluster from their results
+        external_labels = {
+          "cluster" = "{{ .Values.cluster.name }}",
         }
         extra_query_matchers {
           matcher {
