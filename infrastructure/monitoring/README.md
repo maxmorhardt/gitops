@@ -47,13 +47,11 @@ These live in the stack's UI rather than in git, so a new stack needs them recre
 - **Rule sync**: the `repo alerts` folder (uid `repo-alerts`), and a service account `alloy-rules` with the Admin role. Its token is the sealed `monitoring/grafana-rules` secret in each cluster.
 
 - **Notification routing**, in Alerting > Notification configuration:
-  - Contact point `alerts`, with two integrations that both fire on every alert:
-    - Discord, with the alerts channel's webhook URL, using Discord's webhook username and showing the message in an embed;
-    - email, as the backup.
+  - Contact point `alerts`, a Telegram integration with the `@maxhqio_bot` bot token and chat ID `8753214944`.
   - Default notification policy: sends to `alerts`, grouped by `alertname` and `cluster`.
   - A child route `severity = info` that sends to `empty`, a contact point with no integrations, which silences info alerts.
 
-  Discord sometimes rate-limits Grafana Cloud's shared IPs (a 429 on the contact point test), which is why email is there too. Alertmanager also retries at each group interval until Discord gets through.
+  Alertmanager retries at each group interval until Telegram gets through.
 - **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because synced rules only query the metrics data source.
 
 ## Dashboards

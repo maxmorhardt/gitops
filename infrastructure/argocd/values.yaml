@@ -119,6 +119,7 @@ notifications:
   enabled: true
   context:
     cluster: prod
+    telegramChatId: '8753214944'
   secret:
     create: false
   resources:
@@ -129,14 +130,14 @@ notifications:
       cpu: 100m
       memory: 128Mi
   notifiers:
-    service.webhook.discord: |
-      url: $discord-webhook-url
+    service.webhook.telegram: |
+      url: $telegram-url
       headers:
         - name: Content-Type
           value: application/json
   subscriptions:
     - recipients:
-        - discord
+        - telegram
       triggers:
         - on-health-degraded
         - on-sync-failed
@@ -152,16 +153,18 @@ notifications:
   templates:
     template.app-health-degraded: |
       webhook:
-        discord:
+        telegram:
           method: POST
+          path: /sendMessage
           body: |
-            {"content": "[{{.context.cluster}}] **{{.app.metadata.name}}** has been degraded for 10 minutes ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
+            {"chat_id": "{{.context.telegramChatId}}", "link_preview_options": {"is_disabled": true}, "text": {{printf "[%s] %s has been degraded for 10 minutes (%s/applications/%s)" .context.cluster .app.metadata.name .context.argocdUrl .app.metadata.name | toJson}}}
     template.app-sync-failed: |
       webhook:
-        discord:
+        telegram:
           method: POST
+          path: /sendMessage
           body: |
-            {"content": "[{{.context.cluster}}] Sync failed for **{{.app.metadata.name}}**: {{.app.status.operationState.message | trunc 300}} ({{.context.argocdUrl}}/applications/{{.app.metadata.name}})"}
+            {"chat_id": "{{.context.telegramChatId}}", "link_preview_options": {"is_disabled": true}, "text": {{printf "[%s] Sync failed for %s: %s (%s/applications/%s)" .context.cluster .app.metadata.name (.app.status.operationState.message | trunc 300) .context.argocdUrl .app.metadata.name | toJson}}}
 
 dex:
   enabled: false

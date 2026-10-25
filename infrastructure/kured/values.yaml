@@ -2,7 +2,7 @@ extraEnvVars:
   - name: KURED_NOTIFY_URL
     valueFrom:
       secretKeyRef:
-        name: kured-discord
+        name: kured-telegram
         key: url
 
 hostNetwork: true
