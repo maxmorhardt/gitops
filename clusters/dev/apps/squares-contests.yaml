@@ -17,7 +17,7 @@ spec:
     helm:
       parameters:
         - name: image.tag
-          value: sha-b67d1ff
+          value: sha-16d556b
       valuesObject:
         route:
           hostnames:
