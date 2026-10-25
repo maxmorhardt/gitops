@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: ages
-    targetRevision: 0.0.0-sha-d69e645
+    targetRevision: 0.0.0-sha-ae7155d
     helm:
       parameters:
         - name: image.tag
