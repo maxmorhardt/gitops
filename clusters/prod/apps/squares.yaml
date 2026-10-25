@@ -18,6 +18,9 @@ spec:
       parameters:
         - name: image.tag
           value: 2.1.0
+      valuesObject:
+        cachePurge:
+          enabled: true
   syncPolicy:
     automated:
       prune: true
