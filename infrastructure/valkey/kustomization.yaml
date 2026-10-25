@@ -4,7 +4,7 @@ kind: Kustomization
 helmCharts:
   - name: valkey
     repo: oci://docker.io/cloudpirates
-    version: 0.25.15
+    version: 0.25.16
     releaseName: valkey
     namespace: valkey
     valuesFile: values.yaml
