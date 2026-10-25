@@ -10,7 +10,7 @@ destinations:
       create: false
       name: grafana-cloud-metrics
     clusterLabels: [cluster]
-    # rules sync into Grafana instead, through collectors.alloy-singleton.extraConfig
+    # rules sync through collectors.alloy-singleton.extraConfig
     rules:
       enabled: false
   grafanaCloudLogs:
@@ -222,7 +222,7 @@ annotationAutodiscovery:
   metricsTuning:
     includeMetrics: [envoy_cluster_upstream_rq_total, envoy_cluster_upstream_rq_xx]
 
-# Argo CD turns the pre-delete hook into Application finalizers that root then strips, so root never stays synced
+# fix argo stripping pre-delete hook
 alloy-operator:
   waitForAlloyRemoval:
     enabled: false
@@ -240,7 +240,7 @@ collectors:
     presets: [filesystem-log-reader, daemonset]
   alloy-singleton:
     presets: [singleton]
-    # Grafana Cloud's ruler has no Alertmanager on this stack, so PrometheusRules become Grafana-managed rules
+    # convert prometheus rules for grafana cloud
     extraConfig: |
       remote.kubernetes.secret "grafana_rules" {
         name      = "grafana-rules"
