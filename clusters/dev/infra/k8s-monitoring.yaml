@@ -14,7 +14,7 @@ spec:
     - repoURL: https://grafana.github.io/helm-charts
       chart: k8s-monitoring
       # renovate: datasource=helm depName=k8s-monitoring registryUrl=https://grafana.github.io/helm-charts
-      targetRevision: 4.5.3
+      targetRevision: 4.5.5
       helm:
         valueFiles:
           - $values/infrastructure/monitoring/values.yaml
