@@ -15,7 +15,7 @@ jobs:
         include:
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.10.5'
+            chart_version: '10.11.1'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_files: infrastructure/argocd/values.yaml
@@ -59,7 +59,7 @@ jobs:
             values_files: infrastructure/sealed-secrets/values.yaml
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.10.5'
+            chart_version: '10.11.1'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_files: |
@@ -83,7 +83,7 @@ jobs:
               infrastructure/postgres/values-cluster-dev.yaml
           - chart: grafana/k8s-monitoring
             # renovate: datasource=helm depName=k8s-monitoring registryUrl=https://grafana.github.io/helm-charts
-            chart_version: '4.5.3'
+            chart_version: '4.5.5'
             helm_repo_name: grafana
             helm_repo_url: https://grafana.github.io/helm-charts
             values_files: |
@@ -91,7 +91,7 @@ jobs:
               infrastructure/monitoring/values-prod.yaml
           - chart: grafana/k8s-monitoring
             # renovate: datasource=helm depName=k8s-monitoring registryUrl=https://grafana.github.io/helm-charts
-            chart_version: '4.5.3'
+            chart_version: '4.5.5'
             helm_repo_name: grafana
             helm_repo_url: https://grafana.github.io/helm-charts
             values_files: |
@@ -99,7 +99,7 @@ jobs:
               infrastructure/monitoring/values-dev.yaml
           - chart: jetstack/cert-manager
             # renovate: datasource=helm depName=cert-manager registryUrl=https://charts.jetstack.io
-            chart_version: 'v1.21.2'
+            chart_version: 'v1.21.3'
             helm_repo_name: jetstack
             helm_repo_url: https://charts.jetstack.io
             values_files: infrastructure/cert-manager/values.yaml
