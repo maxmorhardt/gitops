@@ -15,7 +15,7 @@ jobs:
         include:
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.11.1'
+            chart_version: '10.11.6'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_files: infrastructure/argocd/values.yaml
@@ -27,7 +27,7 @@ jobs:
             values_files: infrastructure/dex/values.yaml
           - chart: oci://docker.io/envoyproxy/gateway-helm
             # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm
-            chart_version: '1.9.2'
+            chart_version: '1.9.3'
             values_files: infrastructure/envoy-gateway/values.yaml
           - chart: kubereboot/kured
             # renovate: datasource=helm depName=kured registryUrl=https://kubereboot.github.io/charts
@@ -53,13 +53,13 @@ jobs:
             values_files: infrastructure/postgres/values-cluster.yaml
           - chart: sealed-secrets/sealed-secrets
             # renovate: datasource=helm depName=sealed-secrets registryUrl=https://bitnami.github.io/sealed-secrets
-            chart_version: '2.20.0'
+            chart_version: '2.22.0'
             helm_repo_name: sealed-secrets
             helm_repo_url: https://bitnami.github.io/sealed-secrets
             values_files: infrastructure/sealed-secrets/values.yaml
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.11.1'
+            chart_version: '10.11.6'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_files: |
