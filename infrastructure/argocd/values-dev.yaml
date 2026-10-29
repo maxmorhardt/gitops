@@ -6,6 +6,7 @@ configs:
     controller.repo.server.timeout.seconds: 180
     server.repo.server.timeout.seconds: 180
   cm:
+    url: https://argocd.dev.maxhq.io
     oidc.config: |
       name: maxhq
       issuer: https://login.dev.maxhq.io
@@ -20,8 +21,19 @@ configs:
 
 server:
   httproute:
+    enabled: true
+    parentRefs:
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: maxhq
+        namespace: envoy-gateway-system
     hostnames:
       - argocd.dev.maxhq.io
+    rules:
+      - matches:
+          - path:
+              type: PathPrefix
+              value: /
 
 notifications:
   context:

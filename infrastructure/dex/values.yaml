@@ -69,7 +69,6 @@ config:
       - https://squares.maxhq.io
       - https://olympics.maxhq.io
       - https://ages.maxhq.io
-      - https://argocd.maxhq.io
 
   storage:
     type: postgres
@@ -137,7 +136,7 @@ config:
       name: Argo CD
       secretEnv: ARGOCD_CLIENT_SECRET
       redirectURIs:
-        - https://argocd.maxhq.io/auth/callback
+        - http://localhost:8080/auth/callback
 
     - id: argocd-cli
       name: Argo CD CLI
