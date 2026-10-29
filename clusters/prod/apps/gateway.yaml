@@ -18,6 +18,9 @@ spec:
       valuesObject:
         tunnel:
           enabled: true
+        proxy:
+          service:
+            type: ClusterIP
   syncPolicy:
     automated:
       prune: false
