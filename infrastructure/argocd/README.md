@@ -1,6 +1,6 @@
 # Argo CD
 
-GitOps control plane per cluster, at `argocd.maxhq.io` (prod) and `argocd.dev.maxhq.io` (dev).
+GitOps control plane per cluster. Dev's UI is at `argocd.dev.maxhq.io` on the tailnet. Prod's has no route; reach it with `kubectl --context prod -n argocd port-forward svc/argocd-server 8080:80` and open `http://localhost:8080` (its SSO callback and notification links use that address).
 Every workload is an `Application` reconciled from this repo; CI only commits versions and holds
 no kubeconfig. Adding anything is a new file in `clusters/<cluster>/infra/` (upstream charts,
 values at `infrastructure/<component>/values.yaml`) or `clusters/<cluster>/apps/` (charts from

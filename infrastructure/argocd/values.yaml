@@ -1,11 +1,10 @@
-global:
-  domain: argocd.maxhq.io
-
 configs:
   params:
     server.insecure: true
     application.namespaces: argocd
   cm:
+    # prod has no route; its UI is a port-forward to 8080
+    url: http://localhost:8080
     application.instanceLabelKey: argocd.argoproj.io/instance
     timeout.reconciliation: 180s
     kustomize.buildOptions: --enable-helm
@@ -97,20 +96,6 @@ server:
     serviceMonitor:
       enabled: true
       interval: 60s
-  httproute:
-    enabled: true
-    parentRefs:
-      - group: gateway.networking.k8s.io
-        kind: Gateway
-        name: maxhq
-        namespace: envoy-gateway-system
-    hostnames:
-      - argocd.maxhq.io
-    rules:
-      - matches:
-          - path:
-              type: PathPrefix
-              value: /
 
 applicationSet:
   replicas: 0
