@@ -14,6 +14,16 @@ Apps attach by creating an `HTTPRoute` in their own namespace with `parentRefs` 
 The wildcard TLS secret must exist in `envoy-gateway-system`: in prod the sealed Cloudflare origin
 certificate `maxhq.io-tls`, in dev `dev.maxhq.io-tls` issued by [cert-manager](../cert-manager/README.md).
 
+Prod also runs cloudflared (`tunnel.enabled`), which needs the sealed `cloudflared-token` in
+`envoy-gateway-system`: the token from `terraform output -raw prod_tunnel_token` in maxhq's
+`infra/terraform/cloudflare`.
+
+```bash
+scripts/secrets.sh new prod envoy-gateway-system/cloudflared-token token=<token>
+```
+
+The tunnel's ingress rules and the DNS cutover are in maxhq's `infra/terraform/README.md`.
+
 ## Notes
 
 - Client IP: the `ClientTrafficPolicy` walks `X-Forwarded-For` right-to-left and takes the first address outside the trusted Cloudflare CIDRs - the ranges are listed in the gateway chart's `trustedCIDRs`; update them when Cloudflare publishes new ones.
