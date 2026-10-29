@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: gateway
-    targetRevision: 0.0.0-sha-fd7f9dc
+    targetRevision: 0.0.0-sha-c05b265
     helm:
       valuesObject:
         domain: dev.maxhq.io
