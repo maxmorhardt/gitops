@@ -19,8 +19,9 @@ Desired state for the `dev` and `prod` k3s clusters. Argo CD on each cluster rec
 
 ## How it fits together
 
-- **Ingress**: the `maxhq` Envoy Gateway on 443 of every node → apps by `HTTPRoute`. Prod's hostnames are
-  Cloudflare-proxied A records to the prod nodes (origin certificate); dev's resolve to dev's Tailscale IPs,
+- **Ingress**: the `maxhq` Envoy Gateway → apps by `HTTPRoute`. Prod's hostnames are Cloudflare-proxied
+  CNAMEs to the prod Cloudflare Tunnel, which cloudflared carries to the gateway (origin certificate), so prod
+  opens no port; dev's gateway is on 443 of every node and dev's hostnames resolve to dev's Tailscale IPs,
   so dev exists only on the tailnet (certificate from Let's Encrypt via cert-manager). Node-to-node traffic runs
   over Tailscale.
 - **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
