@@ -183,3 +183,50 @@ redis:
     serviceMonitor:
       enabled: true
       interval: 60s
+
+# only signed-in, allowed users reach Argo CD at all; its own SSO and RBAC still apply behind this
+extraObjects:
+  - apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: SecurityPolicy
+    metadata:
+      name: argocd-gate
+    spec:
+      targetRefs:
+        - group: gateway.networking.k8s.io
+          kind: HTTPRoute
+          name: argocd-server
+      oidc:
+        provider:
+          issuer: https://login.maxhq.io
+          authorizationEndpoint: https://login.maxhq.io/auth?connector_id=google
+        clientID: argocd-gate
+        clientSecret:
+          name: argocd-gate-oidc
+        redirectURL: https://argocd.maxhq.io/oauth2/callback
+        logoutPath: /oauth2/logout
+        scopes:
+          - profile
+          - email
+        cookieNames:
+          idToken: argocd-gate-id-token
+      jwt:
+        providers:
+          - name: dex
+            issuer: https://login.maxhq.io
+            remoteJWKS:
+              uri: https://login.maxhq.io/keys
+            extractFrom:
+              cookies:
+                - argocd-gate-id-token
+      authorization:
+        defaultAction: Deny
+        rules:
+          - name: allow-admins
+            action: Allow
+            principal:
+              jwt:
+                provider: dex
+                claims:
+                  - name: email
+                    values:
+                      - maxmorhardt13@gmail.com

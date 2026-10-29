@@ -139,6 +139,13 @@ config:
       redirectURIs:
         - https://argocd.maxhq.io/auth/callback
 
+    # the Envoy sign-in gate in front of Argo CD, separate from Argo CD's own login
+    - id: argocd-gate
+      name: Argo CD
+      secretEnv: ARGOCD_GATE_CLIENT_SECRET
+      redirectURIs:
+        - https://argocd.maxhq.io/oauth2/callback
+
     - id: argocd-cli
       name: Argo CD CLI
       public: true

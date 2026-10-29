@@ -26,3 +26,6 @@ server:
 notifications:
   context:
     cluster: dev
+
+# dev is tailnet-only, so it has no sign-in gate
+extraObjects: []
