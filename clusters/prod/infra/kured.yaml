@@ -17,7 +17,7 @@ spec:
       targetRevision: 6.1.0
       helm:
         valueFiles:
-          - $values/infrastructure/kured/values.yaml
+          - $values/infra/kured/values.yaml
     - repoURL: https://github.com/maxmorhardt/gitops.git
       targetRevision: main
       ref: values

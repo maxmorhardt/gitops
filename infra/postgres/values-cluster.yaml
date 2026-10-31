@@ -39,11 +39,16 @@ cluster:
       login: true
       passwordSecret:
         name: postgres-olympics-user
+    - name: squares
+      ensure: present
+      login: true
+      passwordSecret:
+        name: postgres-squares-user
   monitoring:
     enabled: true
     podMonitor:
       enabled: true
-    # the alerts live in infrastructure/monitoring/rules/postgres.yaml
+    # the alerts live in infra/monitoring/rules/postgres.yaml
     prometheusRule:
       enabled: false
   postgresql:
@@ -99,3 +104,5 @@ databases:
     owner: dex
   - name: olympics
     owner: olympics
+  - name: squares
+    owner: squares

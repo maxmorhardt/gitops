@@ -5,8 +5,8 @@ cluster="${1:?usage: bootstrap/argocd.sh <dev|prod>}"
 cd "$(dirname "$0")/.."
 
 # dev values added if thats the cluster env
-values=(--values infrastructure/argocd/values.yaml)
-[ -f "infrastructure/argocd/values-$cluster.yaml" ] && values+=(--values "infrastructure/argocd/values-$cluster.yaml")
+values=(--values infra/argocd/values.yaml)
+[ -f "infra/argocd/values-$cluster.yaml" ] && values+=(--values "infra/argocd/values-$cluster.yaml")
 
 # install without crds first if not installed
 if ! kubectl get crd httproutes.gateway.networking.k8s.io servicemonitors.monitoring.coreos.com >/dev/null 2>&1; then

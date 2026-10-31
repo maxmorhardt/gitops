@@ -17,10 +17,10 @@
   - `infra/*.yaml` - one `Application` per infrastructure component, pointing at that component's directory here or at an upstream chart with its values from here.
   - `apps/*.yaml` - one `Application` per app: the chart from `oci://ghcr.io/maxmorhardt/charts` at a pinned `targetRevision` (public charts from maxhq, private ones from maxhq-private), `image.tag` as a Helm parameter, and dev's hostname overrides inline.
   - `secrets/<namespace>/` - that cluster's SealedSecrets, sealed with its own `pub-cert.pem`.
-- `infrastructure/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `monitoring/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
+- `infra/<component>/` - one directory per infra component (`argocd/`, `cert-manager/` (dev only), `dex/`, `envoy-gateway/`, `kured/`, `monitoring/`, `postgres/`, `sealed-secrets/`, `storage/`, `system-upgrade-controller/`, `valkey/`): `values.yaml` is prod, `values-dev.yaml` holds dev's differences, plus a `README.md` runbook.
 - `bootstrap/argocd.sh <cluster>` - installs Argo CD on a cluster and applies its root app. Run by hand.
 - `bootstrap/namespaces.sh` - creates the namespaces secrets land in (including `sealed-secrets`), before Argo CD exists.
-- `scripts/` - day-to-day tools: `secrets.sh` (`get`, `set`, `new`, `unseal`, `seal`, `backup-key`) and the Postgres port-forward, dump, and restore scripts. Sealing keys live in the gitignored `scripts/keys/`.
+- `scripts/` - day-to-day tools: `secrets.sh` (`get`, `set`, `new`, `unseal`, `seal`, `backup-key`) and the Postgres dump and restore scripts. Sealing keys live in the gitignored `scripts/keys/`.
 - `.github/workflows/ci.yml` - chart and manifest validation via the shared workflows, fanning into the `Validate Complete` check the rulesets require. **Never applies to the cluster.**
 
 ## Core Principles
@@ -46,15 +46,15 @@
 
 - Make the smallest safe change that solves the requested problem.
 - Change infra behavior by editing the component's `values.yaml`, not the `Application`. Change which chart version runs by editing `targetRevision` in the `Application`.
-- **Never commit a plaintext `Secret`.** Create or change it with `scripts/secrets.sh` (see `infrastructure/sealed-secrets/README.md`), which writes the SealedSecret to `clusters/<cluster>/secrets/<namespace>/`; plain copies stay in the gitignored `.secrets/`. Files named `*.example.yaml` are committed templates with placeholder values.
-- Adding a component means creating `infrastructure/<component>/` with `values.yaml` and `README.md`, then adding `clusters/<cluster>/infra/<component>.yaml` for each cluster that runs it. Nothing runs until the `Application` exists.
+- **Never commit a plaintext `Secret`.** Create or change it with `scripts/secrets.sh` (see `infra/sealed-secrets/README.md`), which writes the SealedSecret to `clusters/<cluster>/secrets/<namespace>/`; plain copies stay in the gitignored `.secrets/`. Files named `*.example.yaml` are committed templates with placeholder values.
+- Adding a component means creating `infra/<component>/` with `values.yaml` and `README.md`, then adding `clusters/<cluster>/infra/<component>.yaml` for each cluster that runs it. Nothing runs until the `Application` exists.
 - When a values change alters how a component is reached, backed up, or recovered, update its `README.md` in the same commit.
 - Deleting a file is a destructive cluster operation. Confirm the resource is genuinely meant to be removed, not just moved.
 
 ## New Component Checklist
 
-1. Create `infrastructure/<component>/` with `values.yaml` (or raw manifests).
-2. Write `infrastructure/<component>/README.md` covering how it is reached, configured, backed up, and recovered.
+1. Create `infra/<component>/` with `values.yaml` (or raw manifests).
+2. Write `infra/<component>/README.md` covering how it is reached, configured, backed up, and recovered.
 3. Add `clusters/<cluster>/infra/<component>.yaml` with the destination namespace and sync policy.
 4. Add any namespace it needs to `bootstrap/namespaces.sh`.
 5. Create its secrets with `scripts/secrets.sh new` and commit them under `clusters/<cluster>/secrets/<namespace>/`.
@@ -65,7 +65,7 @@
 Rendering and validating is the test. There is no test suite; a bad merge reconciles straight into the cluster.
 
 ```bash
-helm template <name> <chart> -f infrastructure/<component>/values.yaml
+helm template <name> <chart> -f infra/<component>/values.yaml
 kubeconform -strict -summary <manifest>                   # raw manifests
 ```
 
@@ -91,7 +91,7 @@ Before adding a new component or upstream chart, verify:
 - **Ingress**: the `maxhq` Envoy Gateway. Prod hostnames (`<app>.maxhq.io`) are Cloudflare-proxied CNAMEs to the prod Cloudflare Tunnel, which prod's cloudflared carries to the gateway's ClusterIP Service, with the Cloudflare origin certificate; prod opens no port. Dev's gateway listens on 443 on every node. Dev hostnames (`<app>.dev.maxhq.io`) are DNS-only records to dev's Tailscale IPs, so dev is reachable only on the tailnet, with a Let's Encrypt certificate from cert-manager. APIs share `api.maxhq.io` / `api.dev.maxhq.io` split by path prefix.
 - **Auth**: Dex at `login.maxhq.io` / `login.dev.maxhq.io`, federating Google and GitHub. Email is the identity.
 - **Data**: PostgreSQL via CloudNativePG (`postgres-operator` plus `postgres-cluster`; prod backs up to `s3://maxhq-backups/prod/`), Valkey with Sentinel for caches and the squares event streams.
-- **Observability**: Grafana Alloy (`k8s-monitoring`) scrapes every ServiceMonitor and ships metrics, logs, and events to Grafana Cloud, which also evaluates every `PrometheusRule`. Nothing is stored in-cluster. Rules live in `infrastructure/monitoring/rules/` and dashboard JSON in `infrastructure/monitoring/dashboards/`. The free tier caps the stack at 10k series, so every metric source keeps only what the rules and dashboards read (see `infrastructure/monitoring/README.md`).
+- **Observability**: Grafana Alloy (`k8s-monitoring`) scrapes every ServiceMonitor and ships metrics, logs, and events to Grafana Cloud, which also evaluates every `PrometheusRule`. Nothing is stored in-cluster. Rules live in `infra/monitoring/rules/` and dashboard JSON in `infra/monitoring/dashboards/`. The free tier caps the stack at 10k series, so every metric source keeps only what the rules and dashboards read (see `infra/monitoring/README.md`).
 - **Node maintenance**: kured coordinates rolling reboots, one node at a time, running `pre-reboot.sh` first. system-upgrade-controller tracks the k3s stable channel.
 
 ## Bootstrap Order
@@ -104,7 +104,7 @@ On a bare cluster only. Everything after step 4 is reconciled automatically.
 4. `bootstrap/argocd.sh <cluster>`
 5. Argo CD syncs the rest; apps retry until their secrets and CRDs exist
 
-Without the key backup, the cluster gets a new key: re-seal everything with `scripts/secrets.sh` (see `infrastructure/sealed-secrets/README.md`).
+Without the key backup, the cluster gets a new key: re-seal everything with `scripts/secrets.sh` (see `infra/sealed-secrets/README.md`).
 
 ## Commit Tags
 
