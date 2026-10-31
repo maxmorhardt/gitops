@@ -35,7 +35,7 @@
         "query": "prometheus",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-prom$/",
         "refresh": 1
       },
       {
