@@ -24,12 +24,12 @@ Desired state for the `dev` and `prod` k3s clusters. Argo CD on each cluster rec
   opens no port; dev's gateway is on 443 of every node and dev's hostnames resolve to dev's Tailscale IPs,
   so dev exists only on the tailnet (certificate from Let's Encrypt via cert-manager). Node-to-node traffic runs
   over Tailscale.
-- **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
+- **Auth**: Dex federates Google, Microsoft, and GitHub sign-in; the gateway validates tokens for the APIs.
 - **Data**: CloudNativePG for PostgreSQL (prod backs up to S3), Valkey with Sentinel for caches and
   event streams.
-- **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh` (see [sealed-secrets](infrastructure/sealed-secrets/README.md)).
+- **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh` (see [sealed-secrets](infra/sealed-secrets/README.md)).
 - **Upgrades**: kured reboots nodes one at a time; system-upgrade-controller tracks k3s stable.
-- **Observability**: Grafana Alloy (`k8s-monitoring`) ships metrics, logs, and events to Grafana Cloud (see [monitoring](infrastructure/monitoring/README.md)); Argo CD posts deploys and failures to Telegram.
+- **Observability**: Grafana Alloy (`k8s-monitoring`) ships metrics, logs, and events to Grafana Cloud (see [monitoring](infra/monitoring/README.md)); Argo CD posts deploys and failures to Telegram.
 
 Outside the clusters, [maxhq](https://github.com/maxmorhardt/maxhq) and maxhq-private publish the app charts to
 `ghcr.io/maxmorhardt/charts`, and maxhq holds the k3s bootstrap and Terraform for DNS, backups, and GitHub settings.
@@ -40,7 +40,7 @@ Outside the clusters, [maxhq](https://github.com/maxmorhardt/maxhq) and maxhq-pr
 # 1. nodes: maxhq/infra/k3s/bootstrap
 python main.py up <cluster>
 
-# 2. namespaces, then the cluster's sealing key backup (infrastructure/sealed-secrets/README.md)
+# 2. namespaces, then the cluster's sealing key backup (infra/sealed-secrets/README.md)
 kubectl config use-context <cluster>
 bootstrap/namespaces.sh
 kubectl apply -f scripts/keys/<cluster>.yaml
@@ -57,6 +57,6 @@ bootstrap/argocd.sh <cluster>
 | `clusters/<cluster>/infra/` | one Application per infrastructure component |
 | `clusters/<cluster>/apps/` | one Application per app, charts from `ghcr.io/maxmorhardt/charts` (public from maxhq, private from maxhq-private) at a pinned version |
 | `clusters/<cluster>/secrets/` | that cluster's SealedSecrets |
-| `infrastructure/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `README.md` runbook |
+| `infra/<component>/` | `values.yaml` (prod), `values-dev.yaml` (dev's differences), manifests, `README.md` runbook |
 | `bootstrap/` | bringing up a bare cluster: namespaces, then Argo CD |
-| `scripts/` | day-to-day tools: `secrets.sh` (get, set, new, unseal, seal, backup-key), Postgres port-forward, dump, and restore |
+| `scripts/` | day-to-day tools: `secrets.sh` (get, set, new, unseal, seal, backup-key), Postgres dump and restore |

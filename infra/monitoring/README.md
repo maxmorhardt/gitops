@@ -60,6 +60,7 @@ These live in the stack's UI rather than in git, so a new stack needs them recre
 - **[Nodes](dashboards/nodes.json):** one node: CPU by mode, which pods use its CPU and memory, CPU spent outside pods (k3s and the OS), load, pressure, disks, network, and temperatures. The Cluster dashboard's node names link here.
 - **[Workloads](dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
 - **[Apps](dashboards/apps.json):** one API service's requests, 5xx rate, latency, endpoints, database connections, outbox backlog, and error logs, plus squares activity and the web frontends.
+- **[Users](dashboards/users.json):** daily and hourly active users, who they are, which countries they're in, and Dex logins. Every panel queries Loki: the API services' `request` log line (with `user` and `cf_country`) and Dex's `login successful` line. That keeps it off the series budget, and logs are kept 14 days.
 
 ## Uptime
 

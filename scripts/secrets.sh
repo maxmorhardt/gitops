@@ -106,11 +106,13 @@ with_values() {
 	echo "$yaml"
 }
 
+# sealed in memory first: set reads the same file it rewrites, and a failed seal must not truncate it
 seal_to() {
-	local ref="$1"
+	local ref="$1" sealed
 	ensure_cert
 	mkdir -p "$sealed_dir/${ref%%/*}"
-	kubeseal --format yaml --cert "$cert" >"$sealed_dir/$ref.yaml"
+	sealed=$(kubeseal --format yaml --cert "$cert")
+	echo "$sealed" >"$sealed_dir/$ref.yaml"
 	echo "sealed $sealed_dir/$ref.yaml"
 }
 
