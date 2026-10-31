@@ -75,20 +75,6 @@ spec:
             severity: critical
           annotations:
             summary: '{{ $labels.namespace }}/{{ $labels.deployment }} has no ready pods'
-        - alert: ScoresWorkerFailing
-          expr: sum by (cluster) (increase(scores_worker_runs_total{namespace="squares", result="error"}[10m])) > 2 unless sum by (cluster) (increase(scores_worker_runs_total{namespace="squares", result="success"}[10m])) > 0
-          for: 5m
-          labels:
-            severity: critical
-          annotations:
-            summary: Every squares scores worker run has failed for 15 minutes, so game scores are not updating
-        - alert: ScoresWorkerStale
-          expr: time() - max by (cluster) (scores_worker_last_success_timestamp_seconds{namespace="squares"}) > 7 * 3600
-          for: 15m
-          labels:
-            severity: warning
-          annotations:
-            summary: The squares scores worker has not finished a run in {{ $value | humanizeDuration }}
         - alert: ValkeyDown
           expr: (sum by (cluster) (redis_up{namespace="valkey"}) or sum by (cluster) (kube_statefulset_replicas{namespace="valkey"}) * 0) == 0
           for: 5m

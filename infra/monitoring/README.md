@@ -36,7 +36,7 @@ The same Application applies everything in [`rules/`](rules/):
 - [`nodes.yaml`](rules/nodes.yaml): node readiness and pressure, kubelet health and certificates, and node-exporter's disk, network, clock, and memory alerts.
 - [`recording.yaml`](rules/recording.yaml): the three recording rules the alerts read.
 - [`postgres.yaml`](rules/postgres.yaml): the CloudNativePG cluster chart's alerts that work here, copied because the chart's own group can't set an interval.
-- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, `MetricsStopped`, app deployments with no ready pods, the squares scores worker, Valkey, and Pi temperatures.
+- [`platform.yaml`](rules/platform.yaml): certificates, gateway 5xx, Postgres backups, Argo CD, k3s upgrades, `MetricsStopped`, app deployments with no ready pods, Valkey, and Pi temperatures.
 
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
