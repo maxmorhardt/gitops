@@ -773,7 +773,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "{cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\", method=\"method\", route=\"route\", status=\"status\", service=\"service\" | user=~\"$user\" | line_format \"{{.user}}  {{.cf_country}}  {{.service}}  {{.method}} {{.route}}  {{.status}}\"",
+          "expr": "{cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\", method=\"method\", route=\"route\", status=\"status\", service=\"service\" | user=~\"$user\" | line_format \"{{.user}}  {{.cf_country}}  {{ or .service .namespace }}  {{.method}} {{.route}}  {{.status}}\"",
           "refId": "A",
           "queryType": "range",
           "legendFormat": ""
