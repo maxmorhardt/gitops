@@ -1,7 +1,7 @@
 {
   "uid": "maxhq-apps",
   "title": "Apps",
-  "description": "Traffic, errors, and latency for the API services, plus the web frontends.",
+  "description": "Health of the API services: traffic, errors, latency, database and outbox, plus squares activity.",
   "tags": [
     "maxhq"
   ],
@@ -11,7 +11,7 @@
   "refresh": "1m",
   "schemaVersion": 39,
   "time": {
-    "from": "now-6h",
+    "from": "now-24h",
     "to": "now"
   },
   "links": [
@@ -35,7 +35,7 @@
         "query": "prometheus",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-prom$/",
         "refresh": 1
       },
       {
@@ -45,7 +45,7 @@
         "query": "loki",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-logs$/",
         "refresh": 1
       },
       {
@@ -93,7 +93,7 @@
   "panels": [
     {
       "type": "row",
-      "title": "$service",
+      "title": "Services",
       "collapsed": false,
       "panels": [],
       "id": 1,
@@ -105,9 +105,9 @@
       }
     },
     {
-      "type": "stat",
-      "title": "Requests/min",
-      "description": "",
+      "type": "table",
+      "title": "Services",
+      "description": "Every API service over the dashboard's time range. Click a service to see it below.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -118,16 +118,353 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])) * 60",
-          "legendFormat": "",
+          "expr": "sum by (job) (up{cluster=\"$cluster\"}) and on (job) group by (job) (http_requests_total{cluster=\"$cluster\"})",
           "refId": "A",
+          "legendFormat": "",
           "instant": true,
-          "range": false
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (job) (increase(http_requests_total{cluster=\"$cluster\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range])) or 0 * group by (job) (http_requests_total{cluster=\"$cluster\"})",
+          "refId": "B",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(sum by (job) (increase(http_requests_total{cluster=\"$cluster\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\", status=~\"5..\"}[$__range])) or 0 * sum by (job) (increase(http_requests_total{cluster=\"$cluster\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]))) / clamp_min(sum by (job) (increase(http_requests_total{cluster=\"$cluster\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range])), 1) or 0 * group by (job) (http_requests_total{cluster=\"$cluster\"})",
+          "refId": "C",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (job) (increase(http_request_duration_seconds_sum{cluster=\"$cluster\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__range])) / (sum by (job) (increase(http_request_duration_seconds_count{cluster=\"$cluster\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__range])) > 0)",
+          "refId": "D",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (job) (outbox_oldest_pending_seconds{cluster=\"$cluster\"})",
+          "refId": "E",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          },
+          "noValue": "\u2013"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Service"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Show ${__value.raw}",
+                    "url": "/d/maxhq-apps?${__url_time_range}&${cluster:queryparam}&${datasource:queryparam}&${loki:queryparam}&var-service=${__value.raw}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Pods up"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "red",
+                      "value": null
+                    },
+                    {
+                      "color": "green",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requests"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percentunit"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.01
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.05
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg latency"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.25
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Outbox lag"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 60
+                    },
+                    {
+                      "color": "red",
+                      "value": 300
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "job",
+                "Value #A",
+                "Value #B",
+                "Value #C",
+                "Value #D",
+                "Value #E"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "job": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5
+            },
+            "renameByName": {
+              "job": "Service",
+              "Value #A": "Pods up",
+              "Value #B": "Requests",
+              "Value #C": "5xx",
+              "Value #D": "Avg latency",
+              "Value #E": "Outbox lag"
+            }
+          }
+        }
+      ],
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 7
+      }
+    },
+    {
+      "type": "row",
+      "title": "$service",
+      "collapsed": false,
+      "panels": [],
+      "id": 3,
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Requests",
+      "description": "API requests over the dashboard's time range, not counting health checks.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]))",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
           "color": {
             "mode": "thresholds"
           },
@@ -137,144 +474,6 @@
               {
                 "color": "green",
                 "value": null
-              }
-            ]
-          },
-          "decimals": 1
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 2,
-      "gridPos": {
-        "x": 0,
-        "y": 1,
-        "w": 6,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "5xx",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "(sum(rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", status=~\"5..\"}[5m])) or vector(0)) / sum(rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m]))",
-          "legendFormat": "",
-          "refId": "A",
-          "instant": true,
-          "range": false
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.01
-              },
-              {
-                "color": "red",
-                "value": 0.05
-              }
-            ]
-          },
-          "decimals": 2
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "value",
-        "justifyMode": "center"
-      },
-      "id": 3,
-      "gridPos": {
-        "x": 6,
-        "y": 1,
-        "w": 6,
-        "h": 4
-      }
-    },
-    {
-      "type": "stat",
-      "title": "p95 latency",
-      "description": "Buckets are 0.1s, 0.5s, 1s, 2.5s, 5s, so this is an estimate.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])))",
-          "legendFormat": "",
-          "refId": "A",
-          "instant": true,
-          "range": false
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 0.5
-              },
-              {
-                "color": "red",
-                "value": 1
               }
             ]
           }
@@ -296,16 +495,16 @@
       },
       "id": 4,
       "gridPos": {
-        "x": 12,
-        "y": 1,
+        "x": 0,
+        "y": 9,
         "w": 6,
         "h": 4
       }
     },
     {
       "type": "stat",
-      "title": "Pods up",
-      "description": "",
+      "title": "5xx",
+      "description": "Share of requests over the dashboard's time range that failed with a 5xx.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -316,16 +515,161 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(up{cluster=\"$cluster\", job=\"$service\"})",
-          "legendFormat": "",
+          "expr": "(sum(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\", status=~\"5..\"}[$__range])) or vector(0)) / clamp_min(sum(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range])) or vector(0), 1)",
           "refId": "A",
+          "legendFormat": "",
           "instant": true,
-          "range": false
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 6,
+        "y": 9,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Avg latency",
+      "description": "Mean response time over the dashboard's time range, not counting realtime's event streams.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by () (increase(http_request_duration_seconds_sum{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__range])) / (sum by () (increase(http_request_duration_seconds_count{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__range])) > 0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": null,
+          "noValue": "no traffic",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.25
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 12,
+        "y": 9,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Pods up",
+      "description": "Pods Prometheus can scrape right now.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(up{cluster=\"$cluster\", job=\"$service\"}) or vector(0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
           "color": {
             "mode": "thresholds"
           },
@@ -358,18 +702,18 @@
         "textMode": "value",
         "justifyMode": "center"
       },
-      "id": 5,
+      "id": 7,
       "gridPos": {
         "x": 18,
-        "y": 1,
+        "y": 9,
         "w": 6,
         "h": 4
       }
     },
     {
       "type": "timeseries",
-      "title": "Requests by status",
-      "description": "",
+      "title": "Requests",
+      "description": "Requests per interval by status class.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -380,166 +724,76 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (status) (rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m]))",
-          "legendFormat": "{{status}}",
-          "refId": "A"
+          "expr": "sum by (class) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__interval]), \"class\", \"${1}xx\", \"status\", \"(.)..\"))",
+          "refId": "A",
+          "legendFormat": "{{class}}",
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "reqps",
+          "unit": "short",
+          "min": 0,
           "custom": {
-            "fillOpacity": 10,
-            "showPoints": "never",
+            "fillOpacity": 80,
             "lineWidth": 1,
-            "spanNulls": true,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "bars",
             "stacking": {
               "mode": "normal"
             }
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 6,
-      "gridPos": {
-        "x": 0,
-        "y": 5,
-        "w": 12,
-        "h": 8
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Latency",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])))",
-          "legendFormat": "p50",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])))",
-          "legendFormat": "p99",
-          "refId": "C"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "s",
-          "custom": {
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "lineWidth": 1,
-            "spanNulls": true
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 7,
-      "gridPos": {
-        "x": 12,
-        "y": 5,
-        "w": 12,
-        "h": 8
-      }
-    },
-    {
-      "type": "table",
-      "title": "Endpoints",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum by (method, path) (rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])) * 60",
-          "legendFormat": "",
-          "refId": "A",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "(sum by (method, path) (rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", status=~\"5..\"}[5m])) or 0 * sum by (method, path) (rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m]))) / sum by (method, path) (rate(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m]))",
-          "legendFormat": "",
-          "refId": "B",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "histogram_quantile(0.95, sum by (method, path, le) (rate(http_request_duration_seconds_bucket{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\"}[5m])))",
-          "legendFormat": "",
-          "refId": "C",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto"
-          }
+          "decimals": 0,
+          "noValue": "0"
         },
         "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "3xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
           {
             "matcher": {
               "id": "byName",
@@ -547,74 +801,28 @@
             },
             "properties": [
               {
-                "id": "unit",
-                "value": "percentunit"
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "p95"
-            },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "s"
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
               }
             ]
           }
         ]
       },
       "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "sortBy": [
-          {
-            "displayName": "Requests/min",
-            "desc": true
-          }
-        ]
-      },
-      "transformations": [
-        {
-          "id": "merge",
-          "options": {}
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
         },
-        {
-          "id": "filterFieldsByName",
-          "options": {
-            "include": {
-              "names": [
-                "method",
-                "path",
-                "Value #A",
-                "Value #B",
-                "Value #C"
-              ]
-            }
-          }
-        },
-        {
-          "id": "organize",
-          "options": {
-            "indexByName": {
-              "method": 0,
-              "path": 1,
-              "Value #A": 2,
-              "Value #B": 3,
-              "Value #C": 4
-            },
-            "renameByName": {
-              "method": "Method",
-              "path": "Path",
-              "Value #A": "Requests/min",
-              "Value #B": "5xx",
-              "Value #C": "p95"
-            }
-          }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
         }
-      ],
+      },
+      "interval": "5m",
       "id": 8,
       "gridPos": {
         "x": 0,
@@ -625,8 +833,8 @@
     },
     {
       "type": "timeseries",
-      "title": "Database connections",
-      "description": "",
+      "title": "Latency",
+      "description": "Mean response time per endpoint. Gaps are stretches with no requests.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -637,29 +845,28 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (pod) (go_sql_in_use_connections{cluster=\"$cluster\", job=\"$service\"})",
-          "legendFormat": "{{pod}} in use",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "max(go_sql_max_open_connections{cluster=\"$cluster\", job=\"$service\"})",
-          "legendFormat": "max",
-          "refId": "B"
+          "expr": "sum by (method, path) (label_replace(rate(http_request_duration_seconds_sum{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__rate_interval]), \"path\", \"$1\", \"route\", \"(.+)\")) / (sum by (method, path) (label_replace(rate(http_request_duration_seconds_count{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__rate_interval]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)",
+          "refId": "A",
+          "legendFormat": "{{method}} {{path}}",
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "s",
+          "min": 0,
           "custom": {
             "fillOpacity": 10,
-            "showPoints": "never",
             "lineWidth": 1,
-            "spanNulls": true
-          }
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line",
+            "stacking": {
+              "mode": "none"
+            }
+          },
+          "noValue": "no traffic"
         },
         "overrides": []
       },
@@ -678,14 +885,325 @@
       "gridPos": {
         "x": 12,
         "y": 13,
-        "w": 6,
+        "w": 12,
         "h": 8
       }
     },
     {
+      "type": "table",
+      "title": "Endpoints",
+      "description": "Endpoints that served requests over the dashboard's time range.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\", status=~\"4..\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) or 0 * (sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)) and (sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)",
+          "refId": "B",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\", status=~\"5..\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) or 0 * (sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)) and (sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)",
+          "refId": "C",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (method, path) (label_replace(increase(http_request_duration_seconds_sum{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) / (sum by (method, path) (label_replace(increase(http_request_duration_seconds_count{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*|/events/.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0) and (sum by (method, path) (label_replace(increase(http_requests_total{cluster=\"$cluster\", job=\"$service\", path!~\"/health.*|/swagger.*\", route!~\"/health.*|/swagger.*\"}[$__range]), \"path\", \"$1\", \"route\", \"(.+)\")) > 0)",
+          "refId": "D",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          },
+          "noValue": "No requests in this time range"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Method"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 80
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Requests"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Avg latency"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.25
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "method",
+                "path",
+                "Value #A",
+                "Value #B",
+                "Value #C",
+                "Value #D"
+              ]
+            }
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "indexByName": {
+              "method": 0,
+              "path": 1,
+              "Value #A": 2,
+              "Value #B": 3,
+              "Value #C": 4,
+              "Value #D": 5
+            },
+            "renameByName": {
+              "method": "Method",
+              "path": "Path",
+              "Value #A": "Requests",
+              "Value #B": "4xx",
+              "Value #C": "5xx",
+              "Value #D": "Avg latency"
+            }
+          }
+        }
+      ],
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 9
+      }
+    },
+    {
       "type": "timeseries",
-      "title": "Outbox backlog",
-      "description": "Age of the oldest event waiting to be relayed; the OutboxBacklog alert fires over 60s.",
+      "title": "Database pool",
+      "description": "Share of the connection pool in use on the busiest pod.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(go_sql_in_use_connections{cluster=\"$cluster\", job=\"$service\"} / go_sql_max_open_connections{cluster=\"$cluster\", job=\"$service\"})",
+          "refId": "A",
+          "legendFormat": "in use",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "noValue": "no database",
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line",
+            "stacking": {
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "id": 11,
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 6,
+        "h": 9
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Outbox lag",
+      "description": "Age of the oldest event waiting to be published to Redis. It should drop back to 0 within seconds.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -697,19 +1215,27 @@
             "uid": "${datasource}"
           },
           "expr": "max(outbox_oldest_pending_seconds{cluster=\"$cluster\", job=\"$service\"})",
+          "refId": "A",
           "legendFormat": "oldest pending",
-          "refId": "A"
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "s",
+          "min": 0,
           "custom": {
             "fillOpacity": 10,
-            "showPoints": "never",
             "lineWidth": 1,
-            "spanNulls": true
-          }
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line",
+            "stacking": {
+              "mode": "none"
+            }
+          },
+          "noValue": "no outbox"
         },
         "overrides": []
       },
@@ -724,18 +1250,18 @@
           "sort": "desc"
         }
       },
-      "id": 10,
+      "id": 12,
       "gridPos": {
         "x": 18,
-        "y": 13,
+        "y": 21,
         "w": 6,
-        "h": 8
+        "h": 9
       }
     },
     {
       "type": "logs",
-      "title": "Errors",
-      "description": "",
+      "title": "Errors and warnings",
+      "description": "The service's ERROR and WARN log lines, newest first.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -746,41 +1272,43 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "{cluster=\"$cluster\", container=\"$service\"} | json | __error__=\"\" | level=~\"(?i)error|fatal|panic\"",
-          "refId": "A"
+          "expr": "{cluster=\"$cluster\", container=\"$service\"} | json | __error__=\"\" | level=~\"(?i)error|warn|fatal|panic\" | line_format \"{{.msg}}{{ with .error }}: {{.}}{{ end }}{{ with .route }}  {{$.method}} {{.}}{{ end }}{{ with .request_id }}  {{.}}{{ end }}\"",
+          "refId": "A",
+          "legendFormat": ""
         }
       ],
       "options": {
         "showTime": true,
-        "wrapLogMessage": true,
+        "wrapLogMessage": false,
         "sortOrder": "Descending",
-        "enableLogDetails": true
+        "enableLogDetails": true,
+        "dedupStrategy": "none"
       },
-      "id": 11,
+      "id": 13,
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 30,
         "w": 24,
         "h": 10
       }
     },
     {
       "type": "row",
-      "title": "Squares activity",
+      "title": "Squares",
       "collapsed": false,
       "panels": [],
-      "id": 12,
+      "id": 14,
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 40,
         "w": 24,
         "h": 1
       }
     },
     {
-      "type": "timeseries",
-      "title": "Squares activity per hour",
-      "description": "",
+      "type": "stat",
+      "title": "Contests created",
+      "description": "Over the dashboard's time range.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -791,47 +1319,440 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(increase(contests_created_total{cluster=\"$cluster\"}[1h]))",
-          "legendFormat": "contests created",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum(increase(squares_claimed_total{cluster=\"$cluster\"}[1h]))",
-          "legendFormat": "squares claimed",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum(increase(invites_redeemed_total{cluster=\"$cluster\"}[1h]))",
-          "legendFormat": "invites redeemed",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum(increase(scores_recorded_total{cluster=\"$cluster\"}[1h]))",
-          "legendFormat": "scores recorded",
-          "refId": "D"
+          "expr": "sum(increase(contests_created_total{cluster=\"$cluster\"}[$__range])) or vector(0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "custom": {
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "lineWidth": 1,
-            "spanNulls": true
+          "decimals": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
           }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 15,
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Invites redeemed",
+      "description": "Over the dashboard's time range.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(invites_redeemed_total{cluster=\"$cluster\"}[$__range])) or vector(0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 16,
+      "gridPos": {
+        "x": 4,
+        "y": 41,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Squares claimed",
+      "description": "Over the dashboard's time range.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(squares_claimed_total{cluster=\"$cluster\"}[$__range])) or vector(0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 17,
+      "gridPos": {
+        "x": 8,
+        "y": 41,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Scores recorded",
+      "description": "Quarter scores the games worker recorded over the dashboard's time range.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(scores_recorded_total{cluster=\"$cluster\"}[$__range])) or vector(0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 18,
+      "gridPos": {
+        "x": 12,
+        "y": 41,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Live viewers",
+      "description": "Open realtime streams right now.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(sse_streams_active{cluster=\"$cluster\"}) or vector(0)",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 19,
+      "gridPos": {
+        "x": 16,
+        "y": 41,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Last score sync",
+      "description": "Time since the games worker last finished a run. It only runs around game times.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "time() - max(scores_worker_last_success_timestamp_seconds{cluster=\"$cluster\"})",
+          "refId": "A",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "decimals": 0,
+          "noValue": "never",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "justifyMode": "center"
+      },
+      "id": 20,
+      "gridPos": {
+        "x": 20,
+        "y": 41,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Activity",
+      "description": "Squares actions per hour.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(contests_created_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "A",
+          "legendFormat": "contests created",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(invites_redeemed_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "B",
+          "legendFormat": "invites redeemed",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(squares_claimed_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "C",
+          "legendFormat": "squares claimed",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(scores_recorded_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "D",
+          "legendFormat": "scores recorded",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "bars",
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "decimals": 0,
+          "noValue": "0"
         },
         "overrides": []
       },
@@ -846,10 +1767,11 @@
           "sort": "desc"
         }
       },
-      "id": 13,
+      "interval": "1h",
+      "id": 21,
       "gridPos": {
         "x": 0,
-        "y": 32,
+        "y": 45,
         "w": 12,
         "h": 8
       }
@@ -857,7 +1779,7 @@
     {
       "type": "timeseries",
       "title": "Realtime streams",
-      "description": "Open SSE streams in squares-realtime, and failed opens per minute.",
+      "description": "Open streams and contests being watched, plus streams refused per interval.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -869,28 +1791,49 @@
             "uid": "${datasource}"
           },
           "expr": "sum(sse_streams_active{cluster=\"$cluster\"})",
+          "refId": "A",
           "legendFormat": "open",
-          "refId": "A"
+          "instant": false,
+          "range": true
         },
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (result) (rate(sse_streams_total{cluster=\"$cluster\", result!=\"ok\"}[5m])) * 60",
-          "legendFormat": "{{result}}/min",
-          "refId": "B"
+          "expr": "sum(realtime_contests_watched{cluster=\"$cluster\"})",
+          "refId": "B",
+          "legendFormat": "contests watched",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (result) (increase(sse_streams_total{cluster=\"$cluster\", result!~\"success|finished\"}[$__interval]))",
+          "refId": "C",
+          "legendFormat": "refused: {{result}}",
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
+          "min": 0,
           "custom": {
             "fillOpacity": 10,
-            "showPoints": "never",
             "lineWidth": 1,
-            "spanNulls": true
-          }
+            "showPoints": "never",
+            "spanNulls": false,
+            "drawStyle": "line",
+            "stacking": {
+              "mode": "none"
+            }
+          },
+          "noValue": "0"
         },
         "overrides": []
       },
@@ -905,123 +1848,11 @@
           "sort": "desc"
         }
       },
-      "id": 14,
+      "interval": "5m",
+      "id": 22,
       "gridPos": {
         "x": 12,
-        "y": 32,
-        "w": 12,
-        "h": 8
-      }
-    },
-    {
-      "type": "row",
-      "title": "Frontends",
-      "collapsed": false,
-      "panels": [],
-      "id": 15,
-      "gridPos": {
-        "x": 0,
-        "y": 40,
-        "w": 24,
-        "h": 1
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Frontend requests",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum by (service) (rate(nginx_http_requests_total{cluster=\"$cluster\"}[5m]))",
-          "legendFormat": "{{service}}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "custom": {
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "lineWidth": 1,
-            "spanNulls": true
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 16,
-      "gridPos": {
-        "x": 0,
-        "y": 41,
-        "w": 12,
-        "h": 8
-      }
-    },
-    {
-      "type": "timeseries",
-      "title": "Frontend connections",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum by (service) (nginx_connections_active{cluster=\"$cluster\"})",
-          "legendFormat": "{{service}}",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "custom": {
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "lineWidth": 1,
-            "spanNulls": true
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "id": 17,
-      "gridPos": {
-        "x": 12,
-        "y": 41,
+        "y": 45,
         "w": 12,
         "h": 8
       }

@@ -35,7 +35,7 @@
         "query": "prometheus",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-prom$/",
         "refresh": 1
       },
       {
@@ -45,7 +45,7 @@
         "query": "loki",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-logs$/",
         "refresh": 1
       },
       {
