@@ -96,6 +96,16 @@ config:
         redirectURI: https://login.maxhq.io/callback
         promptType: ""
 
+    - type: microsoft
+      id: microsoft
+      name: Microsoft
+      config:
+        clientID: $MICROSOFT_CLIENT_ID
+        clientSecret: $MICROSOFT_CLIENT_SECRET
+        redirectURI: https://login.maxhq.io/callback
+        tenant: common
+        emailToLowercase: true
+
     - type: github
       id: github
       name: GitHub

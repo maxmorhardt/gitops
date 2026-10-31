@@ -3,7 +3,7 @@ configs:
     server.insecure: true
     application.namespaces: argocd
   cm:
-    # prod has no route; its UI is a port-forward to 8080
+    # prod port forward only
     url: http://localhost:8080
     application.instanceLabelKey: argocd.argoproj.io/instance
     timeout.reconciliation: 180s
@@ -128,7 +128,7 @@ notifications:
         - on-sync-failed
   triggers:
     trigger.on-health-degraded: |
-      - description: Degraded for 10 minutes, so a rollout that's still starting stays quiet
+      - description: Degraded for 10 minutes
         send: [app-health-degraded]
         when: app.status.health.status == 'Degraded' and time.Now().Sub(time.Parse(app.status.health.lastTransitionTime)).Minutes() >= 10
     trigger.on-sync-failed: |

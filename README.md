@@ -24,7 +24,7 @@ Desired state for the `dev` and `prod` k3s clusters. Argo CD on each cluster rec
   opens no port; dev's gateway is on 443 of every node and dev's hostnames resolve to dev's Tailscale IPs,
   so dev exists only on the tailnet (certificate from Let's Encrypt via cert-manager). Node-to-node traffic runs
   over Tailscale.
-- **Auth**: Dex federates Google and GitHub sign-in; the gateway validates tokens for the APIs.
+- **Auth**: Dex federates Google, Microsoft, and GitHub sign-in; the gateway validates tokens for the APIs.
 - **Data**: CloudNativePG for PostgreSQL (prod backs up to S3), Valkey with Sentinel for caches and
   event streams.
 - **Secrets**: SealedSecrets, sealed per cluster and edited with `scripts/secrets.sh` (see [sealed-secrets](infra/sealed-secrets/README.md)).

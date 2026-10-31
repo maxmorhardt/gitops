@@ -24,17 +24,13 @@ Postgres has no route, NodePort, or LoadBalancer; reach it through an SSH tunnel
 Tailscale. Nodes can reach ClusterIPs, and `postgres-cluster-rw` always points at the primary, so
 a switchover doesn't strand the connection. In DataGrip (or any client with SSH tunnelling):
 
-- **SSH**: host `dev-1` / `prod-1` (Tailscale name), port 22, the cluster's SSH user and key from
-  the `maxhq/infra/k3s` inventory. If that node is rebooting, use another one.
-- **Database**: host is the service's ClusterIP, port 5432, database `squares`, `dex`, or
-  `olympics`, with that role's credentials from `scripts/secrets.sh get`.
+- **SSH**: host `dev-1` / `prod-1`, port 22, the cluster's SSH user and key from
+  the `maxhq/infra/k3s`.
+- **Database**: host is the service's ClusterIP, port 5432, database `squares`.
 
 ```bash
 kubectl --context <cluster> -n cnpg-database get svc postgres-cluster-rw -o jsonpath='{.spec.clusterIP}'
 ```
-
-The ClusterIP only changes if the Service is recreated. Don't expose Postgres with a NodePort or
-LoadBalancer: kube-proxy forwards those before ufw sees them, so on prod it would be public.
 
 ## Recovery (prod)
 
@@ -46,8 +42,3 @@ Cluster modes are overlays added after `values-cluster.yaml` in the `valueFiles`
 2. Remove the overlay so the cluster runs standalone with backups enabled again.
 
 `values-cluster-hibernate.yaml` shuts the cluster down and keeps its volumes.
-
-## Notes
-
-- Never delete WALs from the source archive — that breaks recovery.
-- `prune: false` on the Application: removals need a deliberate `kubectl delete`.
