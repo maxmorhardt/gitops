@@ -35,7 +35,7 @@
         "query": "prometheus",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-prom$/",
         "refresh": 1
       },
       {
@@ -45,7 +45,7 @@
         "query": "loki",
         "current": {},
         "hide": 0,
-        "regex": "",
+        "regex": "/maxhqio-logs$/",
         "refresh": 1
       },
       {
@@ -383,9 +383,9 @@
       }
     },
     {
-      "type": "timeseries",
+      "type": "barchart",
       "title": "Daily active users",
-      "description": "Signed-in users with at least one API request each day, by app. Logs are kept 14 days.",
+      "description": "Signed-in users with at least one API request each UTC day, by app. Logs are kept 14 days.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -396,30 +396,33 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count by (namespace) (sum by (namespace, user) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\" | user=~\"$user\" [1d])))",
+          "expr": "count by (day, namespace) (sum by (day, namespace, user) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\" | user=~\"$user\" | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
           "refId": "A",
-          "queryType": "range",
-          "legendFormat": "{{namespace}}",
-          "step": "1d"
+          "queryType": "instant",
+          "legendFormat": ""
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "decimals": 0,
+          "min": 0,
           "custom": {
-            "drawStyle": "bars",
             "fillOpacity": 80,
-            "lineWidth": 1,
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
+            "lineWidth": 1
           }
         },
         "overrides": []
       },
       "options": {
+        "xField": "day\\namespace",
+        "stacking": "normal",
+        "orientation": "vertical",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 100,
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -430,7 +433,35 @@
           "sort": "desc"
         }
       },
-      "interval": "1d",
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "namespace",
+            "rowField": "day",
+            "valueField": "Value #A",
+            "emptyValue": "zero"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "day\\namespace"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "day\\namespace": ""
+            }
+          }
+        }
+      ],
       "timeFrom": "14d",
       "id": 6,
       "gridPos": {
@@ -441,9 +472,9 @@
       }
     },
     {
-      "type": "timeseries",
+      "type": "barchart",
       "title": "Hourly active users",
-      "description": "Signed-in users with at least one API request each hour, by app.",
+      "description": "Signed-in users with at least one API request each UTC hour, by app.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -454,30 +485,33 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count by (namespace) (sum by (namespace, user) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\" | user=~\"$user\" [1h])))",
+          "expr": "count by (hour, namespace) (sum by (hour, namespace, user) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\" | user=~\"$user\" | label_format hour=`{{ __timestamp__ | date \"01-02 15:00\" }}` [$__range])))",
           "refId": "A",
-          "queryType": "range",
-          "legendFormat": "{{namespace}}",
-          "step": "1h"
+          "queryType": "instant",
+          "legendFormat": ""
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "decimals": 0,
+          "min": 0,
           "custom": {
-            "drawStyle": "bars",
             "fillOpacity": 80,
-            "lineWidth": 1,
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
+            "lineWidth": 1
           }
         },
         "overrides": []
       },
       "options": {
+        "xField": "hour\\namespace",
+        "stacking": "normal",
+        "orientation": "vertical",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 100,
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -488,7 +522,36 @@
           "sort": "desc"
         }
       },
-      "interval": "1h",
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "namespace",
+            "rowField": "hour",
+            "valueField": "Value #A",
+            "emptyValue": "zero"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "hour\\namespace"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "hour\\namespace": ""
+            }
+          }
+        }
+      ],
+      "timeFrom": "2d",
       "id": 7,
       "gridPos": {
         "x": 12,
@@ -550,32 +613,22 @@
       },
       "transformations": [
         {
-          "id": "reduce",
-          "options": {
-            "mode": "seriesToRows",
-            "reducers": [
-              "lastNotNull"
-            ],
-            "labelsToFields": true
-          }
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Field": true
+              "Time": true
             },
             "indexByName": {
               "user": 0,
               "namespace": 1,
               "cf_country": 2,
-              "Last *": 3
+              "Value #A": 3
             },
             "renameByName": {
               "user": "User",
               "namespace": "App",
               "cf_country": "Country",
-              "Last *": "Requests"
+              "Value #A": "Requests"
             }
           }
         }
@@ -628,32 +681,22 @@
       },
       "transformations": [
         {
-          "id": "reduce",
-          "options": {
-            "mode": "seriesToRows",
-            "reducers": [
-              "lastNotNull"
-            ],
-            "labelsToFields": true
-          }
-        },
-        {
           "id": "organize",
           "options": {
             "excludeByName": {
-              "Field": true
+              "Time": true
             },
             "indexByName": {
               "email": 0,
               "connector_id": 1,
               "client_id": 2,
-              "Last *": 3
+              "Value #A": 3
             },
             "renameByName": {
               "email": "Email",
               "connector_id": "Provider",
               "client_id": "Client",
-              "Last *": "Logins"
+              "Value #A": "Logins"
             }
           }
         }
@@ -667,9 +710,9 @@
       }
     },
     {
-      "type": "timeseries",
+      "type": "barchart",
       "title": "Logins per day",
-      "description": "Successful Dex logins each day, by provider.",
+      "description": "Successful Dex logins each UTC day, by provider.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -680,30 +723,33 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "sum by (connector_id) (count_over_time({cluster=\"$cluster\", namespace=\"dex\"} |= \"login successful\" | logfmt [1d]))",
+          "expr": "sum by (day, connector_id) (count_over_time({cluster=\"$cluster\", namespace=\"dex\"} |= \"login successful\" | logfmt | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range]))",
           "refId": "A",
-          "queryType": "range",
-          "legendFormat": "{{connector_id}}",
-          "step": "1d"
+          "queryType": "instant",
+          "legendFormat": ""
         }
       ],
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "decimals": 0,
+          "min": 0,
           "custom": {
-            "drawStyle": "bars",
             "fillOpacity": 80,
-            "lineWidth": 1,
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
+            "lineWidth": 1
           }
         },
         "overrides": []
       },
       "options": {
+        "xField": "day\\connector_id",
+        "stacking": "normal",
+        "orientation": "vertical",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 100,
         "legend": {
           "displayMode": "list",
           "placement": "bottom",
@@ -714,7 +760,35 @@
           "sort": "desc"
         }
       },
-      "interval": "1d",
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "connector_id",
+            "rowField": "day",
+            "valueField": "Value #A",
+            "emptyValue": "zero"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "day\\connector_id"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "day\\connector_id": ""
+            }
+          }
+        }
+      ],
       "timeFrom": "14d",
       "id": 11,
       "gridPos": {
@@ -829,24 +903,10 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "continuous-BlYlRd"
-          }
+          "displayName": "Users"
         },
         "overrides": []
       },
-      "transformations": [
-        {
-          "id": "reduce",
-          "options": {
-            "mode": "seriesToRows",
-            "reducers": [
-              "lastNotNull"
-            ],
-            "labelsToFields": true
-          }
-        }
-      ],
       "options": {
         "view": {
           "id": "zero",
@@ -872,16 +932,23 @@
               "gazetteer": "public/gazetteer/countries.json"
             },
             "config": {
-              "size": {
-                "field": "Last *",
-                "fixed": 5,
-                "min": 4,
-                "max": 20
-              },
-              "color": {
-                "field": "Last *"
-              },
-              "showLegend": true
+              "showLegend": false,
+              "style": {
+                "size": {
+                  "field": "Value #A",
+                  "fixed": 10,
+                  "min": 10,
+                  "max": 30
+                },
+                "color": {
+                  "fixed": "#5794F2"
+                },
+                "opacity": 0.7,
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                }
+              }
             },
             "tooltip": true
           }
@@ -899,8 +966,8 @@
       }
     },
     {
-      "type": "bargauge",
-      "title": "Top countries",
+      "type": "table",
+      "title": "Countries",
       "description": "Signed-in users per country over the dashboard's time range.",
       "datasource": {
         "type": "loki",
@@ -915,41 +982,57 @@
           "expr": "count by (cf_country) (sum by (cf_country, user) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\" | user=~\"$user\" | cf_country!=\"\" [$__range])))",
           "refId": "A",
           "queryType": "instant",
-          "legendFormat": "{{cf_country}}"
+          "legendFormat": ""
         }
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "min": 0,
-          "color": {
-            "mode": "thresholds"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
+          "custom": {
+            "align": "auto"
           }
         },
         "overrides": []
       },
       "options": {
-        "orientation": "horizontal",
-        "displayMode": "basic",
-        "showUnfilled": true,
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        }
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Users",
+            "desc": true
+          }
+        ]
       },
+      "transformations": [
+        {
+          "id": "fieldLookup",
+          "options": {
+            "lookupField": "cf_country",
+            "gazetteer": "public/gazetteer/countries.json"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "id": true,
+              "lat": true,
+              "lng": true
+            },
+            "indexByName": {
+              "name": 0,
+              "cf_country": 1,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "name": "Country",
+              "cf_country": "Code",
+              "Value #A": "Users"
+            }
+          }
+        }
+      ],
       "id": 16,
       "gridPos": {
         "x": 16,
