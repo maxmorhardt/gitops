@@ -18,6 +18,24 @@ The secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-dat
 | `postgres-dex-user`, `postgres-olympics-user`, `postgres-squares-user` | `username`, `password` — the declared `dex`, `olympics`, and `squares` roles |
 | `aws-s3-credentials` | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` — prod backups only |
 
+## Connecting locally
+
+Postgres has no route, NodePort, or LoadBalancer; reach it through an SSH tunnel to any node over
+Tailscale. Nodes can reach ClusterIPs, and `postgres-cluster-rw` always points at the primary, so
+a switchover doesn't strand the connection. In DataGrip (or any client with SSH tunnelling):
+
+- **SSH**: host `dev-1` / `prod-1` (Tailscale name), port 22, the cluster's SSH user and key from
+  the `maxhq/infra/k3s` inventory. If that node is rebooting, use another one.
+- **Database**: host is the service's ClusterIP, port 5432, database `squares`, `dex`, or
+  `olympics`, with that role's credentials from `scripts/secrets.sh get`.
+
+```bash
+kubectl --context <cluster> -n cnpg-database get svc postgres-cluster-rw -o jsonpath='{.spec.clusterIP}'
+```
+
+The ClusterIP only changes if the Service is recreated. Don't expose Postgres with a NodePort or
+LoadBalancer: kube-proxy forwards those before ufw sees them, so on prod it would be public.
+
 ## Recovery (prod)
 
 Cluster modes are overlays added after `values-cluster.yaml` in the `valueFiles` of
