@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: squares-realtime
-    targetRevision: 0.0.0-sha-baf42fb
+    targetRevision: 0.0.0-sha-a9e10a2
     helm:
       parameters:
         - name: image.tag
