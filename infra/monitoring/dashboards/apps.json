@@ -1370,7 +1370,7 @@
     },
     {
       "type": "stat",
-      "title": "Participants joined",
+      "title": "Players joined",
       "description": "Over the dashboard's time range.",
       "datasource": {
         "type": "prometheus",
@@ -1382,7 +1382,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(increase(participants_joined_total{cluster=\"$cluster\",role=\"participant\"}[$__range])) or vector(0)",
+          "expr": "sum(increase(players_joined_total{cluster=\"$cluster\",role=\"player\"}[$__range])) or vector(0)",
           "refId": "A",
           "legendFormat": "",
           "instant": true,
@@ -1708,9 +1708,9 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(increase(participants_joined_total{cluster=\"$cluster\",role=\"participant\"}[$__interval]))",
+          "expr": "sum(increase(players_joined_total{cluster=\"$cluster\",role=\"player\"}[$__interval]))",
           "refId": "B",
-          "legendFormat": "participants joined",
+          "legendFormat": "players joined",
           "instant": false,
           "range": true
         },
