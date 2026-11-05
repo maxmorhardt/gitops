@@ -40,7 +40,6 @@ spec:
             - prod-us-east-0
             - -gcloud-hosted-grafana-id
             - '1880852'
-            # Grafana Cloud can only reach the replica, nothing else in the cluster
             - -use-gossh
             - -permit-domains
             - postgres-cluster-ro.cnpg-database.svc.cluster.local

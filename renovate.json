@@ -32,8 +32,8 @@
   },
   "packageRules": [
     {
-      "description": "chart and image bumps are reviewed and merged by hand",
-      "matchManagers": ["custom.regex", "argocd", "kubernetes"],
+      "description": "chart bumps are reviewed and merged by hand",
+      "matchManagers": ["custom.regex", "argocd"],
       "automerge": false,
       "addLabels": ["deploy"]
     },
