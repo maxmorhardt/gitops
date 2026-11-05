@@ -611,7 +611,7 @@
                 "value": [
                   {
                     "title": "Contests for ${__value.raw}",
-                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${__url_time_range}"
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw:percentencode}&${__url_time_range}"
                   }
                 ]
               }
@@ -1158,7 +1158,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count(sum by (ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ (?P<path>[^ ?]*)[^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"(?P<referer>[^\"]*)\" \"(?P<ua>[^\"]*)\" \"(?P<ip>[^,\"]+)` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` [$__range])))",
+          "expr": "count(sum by (ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1216,7 +1216,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count by (day, network) (sum by (day, network, ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ (?P<path>[^ ?]*)[^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"(?P<referer>[^\"]*)\" \"(?P<ua>[^\"]*)\" \"(?P<ip>[^,\"]+)` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
+          "expr": "count by (day, network) (sum by (day, network, ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1304,7 +1304,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "sum by (ip, network, campaign, device) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ (?P<path>[^ ?]*)[^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"(?P<referer>[^\"]*)\" \"(?P<ua>[^\"]*)\" \"(?P<ip>[^,\"]+)` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` [$__range]))",
+          "expr": "sum by (ip, network, campaign, device) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua [$__range]))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1374,7 +1374,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "{cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ (?P<path>[^ ?]*)[^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"(?P<referer>[^\"]*)\" \"(?P<ua>[^\"]*)\" \"(?P<ip>[^,\"]+)` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | line_format \"{{.ip}}  {{.device}}  {{.network}} {{.campaign}}\"",
+          "expr": "{cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua | line_format \"{{.ip}}  {{.device}}  {{.network}} {{.campaign}}\"",
           "refId": "A",
           "queryType": "range",
           "legendFormat": ""
