@@ -25,6 +25,10 @@ spec:
     - repoURL: https://github.com/maxmorhardt/gitops.git
       targetRevision: main
       path: infra/monitoring/rules
+    # prod only: the agent that lets Grafana Cloud query the Postgres replica
+    - repoURL: https://github.com/maxmorhardt/gitops.git
+      targetRevision: main
+      path: infra/monitoring/pdc
   syncPolicy:
     automated:
       prune: true

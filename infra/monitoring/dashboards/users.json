@@ -599,7 +599,25 @@
             "align": "auto"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "showHeader": true,

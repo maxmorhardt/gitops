@@ -1,0 +1,965 @@
+{
+  "uid": "maxhq-contests",
+  "title": "Contests",
+  "description": "Squares contests, users, and what they did, read from the Postgres replica through Private Data Source Connect.",
+  "tags": [
+    "maxhq"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "5m",
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": [
+        "maxhq"
+      ],
+      "asDropdown": false,
+      "includeVars": true,
+      "keepTime": true,
+      "title": "Dashboards"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "postgres",
+        "label": "Database",
+        "type": "datasource",
+        "query": "grafana-postgresql-datasource",
+        "current": {},
+        "hide": 0,
+        "regex": "/postgres/",
+        "refresh": 1
+      },
+      {
+        "name": "user",
+        "label": "User (regex)",
+        "type": "textbox",
+        "query": ".+",
+        "current": {
+          "text": ".+",
+          "value": ".+"
+        },
+        "hide": 0
+      },
+      {
+        "name": "hide",
+        "label": "Hide users (regex)",
+        "type": "textbox",
+        "query": "^$",
+        "current": {
+          "text": "^$",
+          "value": "^$"
+        },
+        "hide": 0,
+        "description": "Users whose activity and contests to leave out, such as your own test accounts."
+      },
+      {
+        "name": "status",
+        "label": "Contests",
+        "type": "custom",
+        "query": "active,deleted,all",
+        "current": {
+          "text": "active",
+          "value": "active"
+        },
+        "hide": 0,
+        "multi": false,
+        "includeAll": false,
+        "options": [
+          {
+            "selected": true,
+            "text": "active",
+            "value": "active"
+          },
+          {
+            "selected": false,
+            "text": "deleted",
+            "value": "deleted"
+          },
+          {
+            "selected": false,
+            "text": "all",
+            "value": "all"
+          }
+        ]
+      },
+      {
+        "name": "contest",
+        "label": "Contest",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "${postgres}"
+        },
+        "query": "SELECT c.name || ' · ' || c.owner || ' · ' || to_char(c.created_at, 'Mon DD') AS __text, c.id::text AS __value\nFROM contests.contests c\nWHERE NOT c.owner ~* ('^(' || '${hide}' || ')$')\nORDER BY (c.status = 'DELETED'), c.created_at DESC",
+        "definition": "SELECT c.name || ' · ' || c.owner || ' · ' || to_char(c.created_at, 'Mon DD') AS __text, c.id::text AS __value\nFROM contests.contests c\nWHERE NOT c.owner ~* ('^(' || '${hide}' || ')$')\nORDER BY (c.status = 'DELETED'), c.created_at DESC",
+        "refresh": 1,
+        "sort": 0,
+        "current": {},
+        "hide": 0,
+        "multi": false,
+        "includeAll": false
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Overview",
+      "collapsed": false,
+      "panels": [],
+      "id": 1,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Users",
+      "description": "Accounts, all time.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT count(*) AS value FROM accounts.users WHERE NOT email ~* ('^(' || '${hide}' || ')$')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 2,
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "New users, 7d",
+      "description": "Accounts created in the last 7 days.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT count(*) AS value FROM accounts.users\nWHERE created_at > now() - interval '7 days' AND NOT email ~* ('^(' || '${hide}' || ')$')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 3,
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Contests",
+      "description": "Contests that aren't deleted.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT count(*) AS value FROM contests.contests\nWHERE status <> 'DELETED' AND NOT owner ~* ('^(' || '${hide}' || ')$')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 4,
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "New contests, 7d",
+      "description": "Contests created in the last 7 days that aren't deleted.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT count(*) AS value FROM contests.contests\nWHERE status <> 'DELETED' AND created_at > now() - interval '7 days' AND NOT owner ~* ('^(' || '${hide}' || ')$')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 5,
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Players joined",
+      "description": "Players other than the owner in contests that aren't deleted.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT count(*) AS value FROM contests.contest_participants p\nJOIN contests.contests c ON c.id = p.contest_id\nWHERE p.role <> 'owner' AND c.status <> 'DELETED' AND NOT p.user_id ~* ('^(' || '${hide}' || ')$') AND NOT c.owner ~* ('^(' || '${hide}' || ')$')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 6,
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Squares claimed",
+      "description": "Squares claimed right now in contests that aren't deleted.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT count(*) AS value FROM contests.squares s\nJOIN contests.contests c ON c.id = s.contest_id\nWHERE s.owner <> '' AND c.status <> 'DELETED' AND NOT s.owner ~* ('^(' || '${hide}' || ')$') AND NOT c.owner ~* ('^(' || '${hide}' || ')$')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "decimals": 0,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 7,
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "type": "row",
+      "title": "Contests",
+      "collapsed": false,
+      "panels": [],
+      "id": 8,
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Contests",
+      "description": "Every contest the user filter matches as owner or player. Click a contest to open it below, or an owner for their contests and requests.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT\n  c.created_at AS \"Created\",\n  c.name AS \"Contest\",\n  c.owner AS \"Owner\",\n  u.display_name AS \"Owner name\",\n  c.status AS \"Status\",\n  c.visibility AS \"Visibility\",\n  coalesce(g.away_abbr || ' @ ' || g.home_abbr, c.away_team || ' @ ' || c.home_team) AS \"Game\",\n  g.game_time AS \"Kickoff\",\n  (SELECT count(*) FROM contests.contest_participants p WHERE p.contest_id = c.id) AS \"Players\",\n  (SELECT count(*) FROM contests.squares s WHERE s.contest_id = c.id AND s.owner <> '') AS \"Squares\",\n  (SELECT count(*) FROM contests.contest_invites i WHERE i.contest_id = c.id) AS \"Invites\",\n  (SELECT coalesce(sum(i.uses), 0) FROM contests.contest_invites i WHERE i.contest_id = c.id) AS \"Invite uses\",\n  c.id::text AS id\nFROM contests.contests c\nLEFT JOIN contests.games g ON g.id = c.game_id\nLEFT JOIN accounts.users u ON u.email = c.owner\nWHERE ('${status}' = 'all' OR (c.status = 'DELETED') = ('${status}' = 'deleted'))\n  AND NOT c.owner ~* ('^(' || '${hide}' || ')$')\n  AND (c.owner ~* ('^(' || '${user}' || ')$') OR EXISTS (\n    SELECT 1 FROM contests.contest_participants p WHERE p.contest_id = c.id AND p.user_id ~* ('^(' || '${user}' || ')$')))\nORDER BY c.created_at DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Contest"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__data.fields.Contest}",
+                    "url": "/d/maxhq-contests/contests?var-contest=${__data.fields.id}&${user:queryparam}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Owner"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Requests and location for ${__value.raw}",
+                    "url": "/d/maxhq-users/users?var-user=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 9,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 10
+      }
+    },
+    {
+      "type": "table",
+      "title": "Users",
+      "description": "Every account the user filter matches, most recently active first. Last activity is the newest sign-up, contest, join, square, or invite.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT\n  u.created_at AS \"Signed up\",\n  u.email AS \"User\",\n  u.display_name AS \"Name\",\n  (SELECT count(*) FROM contests.contests c WHERE c.owner = u.email AND c.status <> 'DELETED') AS \"Contests owned\",\n  (SELECT count(*) FROM contests.contest_participants p JOIN contests.contests c ON c.id = p.contest_id\n    WHERE p.user_id = u.email AND p.role <> 'owner' AND c.status <> 'DELETED' AND NOT c.owner ~* ('^(' || '${hide}' || ')$')) AS \"Contests joined\",\n  (SELECT count(*) FROM contests.squares s JOIN contests.contests c ON c.id = s.contest_id\n    WHERE s.owner = u.email AND c.status <> 'DELETED' AND NOT c.owner ~* ('^(' || '${hide}' || ')$')) AS \"Squares\",\n  greatest(\n    u.created_at,\n    (SELECT max(c.created_at) FROM contests.contests c WHERE c.owner = u.email),\n    (SELECT max(p.joined_at) FROM contests.contest_participants p WHERE p.user_id = u.email),\n    (SELECT max(s.claimed_at) FROM contests.squares s WHERE s.owner = u.email),\n    (SELECT max(i.created_at) FROM contests.contest_invites i WHERE i.created_by = u.email)\n  ) AS \"Last activity\"\nFROM accounts.users u\nWHERE u.email ~* ('^(' || '${user}' || ')$') AND NOT u.email ~* ('^(' || '${hide}' || ')$')\nORDER BY \"Last activity\" DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Requests and location for ${__value.raw}",
+                    "url": "/d/maxhq-users/users?var-user=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 10,
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "type": "row",
+      "title": "Activity",
+      "collapsed": false,
+      "panels": [],
+      "id": 11,
+      "gridPos": {
+        "x": 0,
+        "y": 25,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Timeline",
+      "description": "What users did, newest first, rebuilt from what the database holds now: a square claimed and later cleared, or a contest edit, doesn't show. The Users dashboard's request logs have those for 14 days.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT e.time AS \"Time\", e.user AS \"User\", e.action AS \"Action\", e.contest AS \"Contest\", e.contest_id AS id\nFROM (\n  SELECT u.created_at AS time, u.email AS user, 'signed up' AS action, '' AS contest, '' AS contest_id, '' AS owner\n  FROM accounts.users u\n  UNION ALL\n  SELECT c.created_at, c.owner, 'created contest (' || c.visibility || ')', c.name, c.id::text, c.owner\n  FROM contests.contests c\n  UNION ALL\n  SELECT c.updated_at, coalesce(c.updated_by, c.owner), 'deleted contest', c.name, c.id::text, c.owner\n  FROM contests.contests c WHERE c.status = 'DELETED'\n  UNION ALL\n  SELECT p.joined_at, p.user_id, 'joined as ' || p.role || CASE WHEN p.invite_id IS NOT NULL THEN ' via invite' ELSE '' END, c.name, c.id::text, c.owner\n  FROM contests.contest_participants p JOIN contests.contests c ON c.id = p.contest_id\n  WHERE p.role <> 'owner'\n  UNION ALL\n  SELECT s.claimed_at, s.owner, 'claimed square ' || s.row || ',' || s.col, c.name, c.id::text, c.owner\n  FROM contests.squares s JOIN contests.contests c ON c.id = s.contest_id\n  WHERE s.owner <> ''\n  UNION ALL\n  SELECT i.created_at, i.created_by,\n    'created ' || i.role || ' invite: ' || i.max_squares || ' squares, '\n      || i.uses || CASE WHEN i.max_uses > 0 THEN '/' || i.max_uses ELSE '' END || ' uses',\n    c.name, c.id::text, c.owner\n  FROM contests.contest_invites i JOIN contests.contests c ON c.id = i.contest_id\n) e\nWHERE $__timeFilter(e.time) AND e.user ~* ('^(' || '${user}' || ')$') AND NOT e.user ~* ('^(' || '${hide}' || ')$') AND NOT e.owner ~* ('^(' || '${hide}' || ')$')\nORDER BY e.time DESC\nLIMIT 500",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Contest"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open ${__data.fields.Contest}",
+                    "url": "/d/maxhq-contests/contests?var-contest=${__data.fields.id}&${user:queryparam}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Requests and location for ${__value.raw}",
+                    "url": "/d/maxhq-users/users?var-user=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 12,
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 12
+      }
+    },
+    {
+      "type": "row",
+      "title": "Contest: ${contest:text}",
+      "collapsed": false,
+      "panels": [],
+      "id": 13,
+      "gridPos": {
+        "x": 0,
+        "y": 38,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "table",
+      "title": "Players",
+      "description": "Everyone in the selected contest.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT\n  p.joined_at AS \"Joined\",\n  p.user_id AS \"User\",\n  u.display_name AS \"Name\",\n  p.role AS \"Role\",\n  p.max_squares AS \"Max squares\",\n  (SELECT count(*) FROM contests.squares s WHERE s.contest_id = p.contest_id AND s.owner = p.user_id) AS \"Squares\",\n  p.invite_id IS NOT NULL AS \"Via invite\"\nFROM contests.contest_participants p\nLEFT JOIN accounts.users u ON u.email = p.user_id\nWHERE p.contest_id::text = '${contest}'\nORDER BY p.joined_at",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Requests and location for ${__value.raw}",
+                    "url": "/d/maxhq-users/users?var-user=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 14,
+      "gridPos": {
+        "x": 0,
+        "y": 39,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Invites",
+      "description": "The selected contest's invite links and how often each was used.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT\n  i.created_at AS \"Created\",\n  i.created_by AS \"By\",\n  i.role AS \"Role\",\n  i.max_squares AS \"Max squares\",\n  i.uses AS \"Uses\",\n  CASE WHEN i.max_uses > 0 THEN i.max_uses::text ELSE 'unlimited' END AS \"Max uses\",\n  i.expires_at AS \"Expires\"\nFROM contests.contest_invites i\nWHERE i.contest_id::text = '${contest}'\nORDER BY i.created_at",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 15,
+      "gridPos": {
+        "x": 12,
+        "y": 39,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "table",
+      "title": "Squares",
+      "description": "Claimed squares in the selected contest, in the order they were claimed.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "${postgres}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "${postgres}"
+          },
+          "refId": "A",
+          "rawSql": "SELECT\n  s.claimed_at AS \"Claimed\",\n  s.owner AS \"User\",\n  s.owner_name AS \"Name\",\n  s.row AS \"Row\",\n  s.col AS \"Col\",\n  s.value AS \"Initials\"\nFROM contests.squares s\nWHERE s.contest_id::text = '${contest}' AND s.owner <> ''\nORDER BY s.claimed_at",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw}&${hide:queryparam}&${status:queryparam}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Requests and location for ${__value.raw}",
+                    "url": "/d/maxhq-users/users?var-user=${__value.raw}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "id": 16,
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ]
+}

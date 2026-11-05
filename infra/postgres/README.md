@@ -16,6 +16,7 @@ The secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-dat
 | `postgres-superuser` | `username` (`postgres`), `password` |
 | `postgres-admin-user` | `username`, `password` — owner of the `maxhq` database |
 | `postgres-dex-user`, `postgres-olympics-user`, `postgres-squares-user` | `username`, `password` — the declared `dex`, `olympics`, and `squares` roles |
+| `postgres-grafana-user` | `username` (`grafana`), `password` — the read-only role behind Grafana's Postgres data source |
 | `aws-s3-credentials` | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` — prod backups only |
 
 ## Connecting locally
@@ -30,6 +31,22 @@ a switchover doesn't strand the connection. In DataGrip (or any client with SSH 
 
 ```bash
 kubectl --context <cluster> -n cnpg-database get svc postgres-cluster-rw -o jsonpath='{.spec.clusterIP}'
+```
+
+## Grafana's read-only role (prod)
+
+The `grafana` role is declared in `values-cluster.yaml`, but CloudNativePG doesn't manage grants. Run
+this once on the primary after the role exists; the grants live in the database, so a restore from
+backup keeps them, and the default privileges cover tables later migrations create. A new schema
+needs its own `USAGE` and `SELECT` grants.
+
+```bash
+primary=$(kubectl --context prod -n cnpg-database get pod -l cnpg.io/instanceRole=primary -o name)
+kubectl --context prod -n cnpg-database exec -i "$primary" -c postgres -- psql -d squares <<'EOF'
+GRANT USAGE ON SCHEMA contests, games, accounts TO grafana;
+GRANT SELECT ON ALL TABLES IN SCHEMA contests, games, accounts TO grafana;
+ALTER DEFAULT PRIVILEGES FOR ROLE squares IN SCHEMA contests, games, accounts GRANT SELECT ON TABLES TO grafana;
+EOF
 ```
 
 ## Recovery (prod)
