@@ -1,20 +1,2 @@
-cluster:
-  roles:
-    - name: dex
-      ensure: present
-      login: true
-      passwordSecret:
-        name: postgres-dex-user
-    - name: olympics
-      ensure: present
-      login: true
-      passwordSecret:
-        name: postgres-olympics-user
-    - name: squares
-      ensure: present
-      login: true
-      passwordSecret:
-        name: postgres-squares-user
-
 backups:
   enabled: false
