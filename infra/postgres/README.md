@@ -35,10 +35,7 @@ kubectl --context <cluster> -n cnpg-database get svc postgres-cluster-rw -o json
 
 ## Grafana's read-only role (prod)
 
-The `grafana` role is declared in `values-cluster.yaml`, but CloudNativePG doesn't manage grants. Run
-this once on the primary after the role exists; the grants live in the database, so a restore from
-backup keeps them, and the default privileges cover tables later migrations create. A new schema
-needs its own `USAGE` and `SELECT` grants.
+The `grafana` role is declared in `values-cluster.yaml`, but CloudNativePG doesn't manage grants. Run this once on the primary after the role exists
 
 ```bash
 primary=$(kubectl --context prod -n cnpg-database get pod -l cnpg.io/instanceRole=primary -o name)
