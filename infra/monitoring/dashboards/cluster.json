@@ -53,7 +53,11 @@
         "definition": "label_values(kube_node_info, cluster)",
         "refresh": 2,
         "sort": 1,
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "prod",
+          "value": "prod"
+        },
         "hide": 0,
         "multi": false,
         "includeAll": false

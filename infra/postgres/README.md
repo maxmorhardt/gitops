@@ -19,6 +19,8 @@ The secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-dat
 | `postgres-grafana-user` | `username` (`grafana`), `password` — not used in dev |
 | `aws-s3-credentials` | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` — prod backups only |
 
+Role secrets carry the `cnpg.io/reload` label, without which CloudNativePG misses a new role's secret or a changed password. Create new ones with `scripts/secrets.sh new <cluster> cnpg-database/<name> ... --type kubernetes.io/basic-auth --label cnpg.io/reload=true`.
+
 ## Connecting locally
 
 Postgres has no route, NodePort, or LoadBalancer; reach it through an SSH tunnel to any node over
