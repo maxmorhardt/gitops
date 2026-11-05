@@ -1735,6 +1735,17 @@
           "legendFormat": "scores recorded",
           "instant": false,
           "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(players_removed_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "E",
+          "legendFormat": "players banned",
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
