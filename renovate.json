@@ -22,6 +22,10 @@
       "matchStrings": ["github\\.com/(?<depName>[^/]+/[^/]+)/releases/download/(?<currentValue>v[0-9][^/]+)/"]
     }
   ],
+  "kubernetes": {
+    "description": "image tags in plain manifests Argo applies, like the PDC agent",
+    "managerFilePatterns": ["/^infra/monitoring/pdc/.+\\.ya?ml$/"]
+  },
   "argocd": {
     "description": "infra Application chart versions; apps/ is left alone, CI commits those",
     "managerFilePatterns": ["/^clusters/[^/]+/infra/.*\\.ya?ml$/"]
