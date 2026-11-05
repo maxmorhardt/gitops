@@ -1,7 +1,7 @@
 {
   "uid": "maxhq-users",
   "title": "Users",
-  "description": "Who uses the apps and from where: active users, logins, countries, regions, and ad visitors, from API request logs, Dex login logs, and the squares web server's log.",
+  "description": "Who uses the apps and from where: active users, logins, countries, regions, and ad sessions, from API request logs, Dex login logs, and Faro events.",
   "tags": [
     "maxhq"
   ],
@@ -1146,8 +1146,8 @@
     },
     {
       "type": "stat",
-      "title": "Ad visitors",
-      "description": "Distinct IPs that arrived from an ad click over the dashboard's time range, from the squares web server's log. Match an IP against the Users table to see who signed in.",
+      "title": "Ad sessions",
+      "description": "Faro sessions that landed from an ad click over the dashboard's time range.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -1158,7 +1158,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count(sum by (ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1203,9 +1203,9 @@
       }
     },
     {
-      "type": "barchart",
-      "title": "Ad visitors per day",
-      "description": "Distinct ad-click IPs per day and network.",
+      "type": "stat",
+      "title": "Ad sessions signed in",
+      "description": "Ad sessions in which someone then signed in.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -1216,7 +1216,65 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count by (day, network) (sum by (day, network, ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
+          "expr": "count(sum by (session_id, user_email) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | user_email!=\"\" [$__range])) and on (session_id) sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 23,
+      "gridPos": {
+        "x": 6,
+        "y": 62,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Ad sessions per day",
+      "description": "Ad sessions per day and network.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "count by (day, event_data_ad_click) (sum by (day, event_data_ad_click, session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1235,7 +1293,7 @@
         "overrides": []
       },
       "options": {
-        "xField": "day\\network",
+        "xField": "day\\event_data_ad_click",
         "stacking": "normal",
         "orientation": "vertical",
         "showValue": "never",
@@ -1257,7 +1315,7 @@
         {
           "id": "groupingToMatrix",
           "options": {
-            "columnField": "network",
+            "columnField": "event_data_ad_click",
             "rowField": "day",
             "valueField": "Value #A",
             "emptyValue": "zero"
@@ -1268,7 +1326,7 @@
           "options": {
             "sort": [
               {
-                "field": "day\\network"
+                "field": "day\\event_data_ad_click"
               }
             ]
           }
@@ -1277,23 +1335,23 @@
           "id": "organize",
           "options": {
             "renameByName": {
-              "day\\network": ""
+              "day\\event_data_ad_click": ""
             }
           }
         }
       ],
       "id": 20,
       "gridPos": {
-        "x": 6,
+        "x": 12,
         "y": 62,
-        "w": 18,
+        "w": 12,
         "h": 4
       }
     },
     {
       "type": "table",
-      "title": "Ad visitors",
-      "description": "One row per IP that arrived from an ad: network, campaign, device, and how many web requests it made.",
+      "title": "Ad sessions",
+      "description": "One row per ad session: network, campaign, where the click came from, device, and the page it landed on.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -1304,7 +1362,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "sum by (ip, network, campaign, device) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua [$__range]))",
+          "expr": "sum by (session_id, event_data_ad_click, event_data_utm_campaign, event_data_referrer, device, page_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range]))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1323,7 +1381,7 @@
         "cellHeight": "sm",
         "sortBy": [
           {
-            "displayName": "Requests",
+            "displayName": "Landings",
             "desc": true
           }
         ]
@@ -1336,18 +1394,22 @@
               "Time": true
             },
             "indexByName": {
-              "ip": 0,
-              "network": 1,
-              "campaign": 2,
-              "device": 3,
-              "Value #A": 4
+              "session_id": 0,
+              "event_data_ad_click": 1,
+              "event_data_utm_campaign": 2,
+              "event_data_referrer": 3,
+              "device": 4,
+              "page_id": 5,
+              "Value #A": 6
             },
             "renameByName": {
-              "ip": "IP",
-              "network": "Network",
-              "campaign": "Campaign",
+              "session_id": "Session",
+              "event_data_ad_click": "Network",
+              "event_data_utm_campaign": "Campaign",
+              "event_data_referrer": "Referrer",
               "device": "Device",
-              "Value #A": "Requests"
+              "page_id": "Landing page",
+              "Value #A": "Landings"
             }
           }
         }
@@ -1356,14 +1418,14 @@
       "gridPos": {
         "x": 0,
         "y": 66,
-        "w": 12,
+        "w": 14,
         "h": 10
       }
     },
     {
-      "type": "logs",
-      "title": "Ad landings",
-      "description": "Web requests carrying an ad click id, newest first; repeats from one visit are collapsed.",
+      "type": "table",
+      "title": "Ad sessions signed in",
+      "description": "Who signed in during an ad session. Click a user for their contests or requests.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -1374,24 +1436,77 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "{cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua | line_format \"{{.ip}}  {{.device}}  {{.network}} {{.campaign}}\"",
+          "expr": "sum by (session_id, user_email) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | user_email!=\"\" [$__range])) and on (session_id) sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range]))",
           "refId": "A",
-          "queryType": "range",
+          "queryType": "instant",
           "legendFormat": ""
         }
       ],
-      "options": {
-        "showTime": true,
-        "wrapLogMessage": false,
-        "sortOrder": "Descending",
-        "enableLogDetails": true,
-        "dedupStrategy": "exact"
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw:percentencode}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Requests and location for ${__value.raw}",
+                    "url": "/d/maxhq-users/users?var-user=${__value.raw:percentencode}&${cluster:queryparam}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Events",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "session_id": 0,
+              "user_email": 1,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "session_id": "Session",
+              "user_email": "User",
+              "Value #A": "Events"
+            }
+          }
+        }
+      ],
       "id": 22,
       "gridPos": {
-        "x": 12,
+        "x": 14,
         "y": 66,
-        "w": 12,
+        "w": 10,
         "h": 10
       }
     }
