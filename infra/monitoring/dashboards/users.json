@@ -1,7 +1,7 @@
 {
   "uid": "maxhq-users",
   "title": "Users",
-  "description": "Who uses the apps and from where: active users, logins, and countries, from API request logs and Dex login logs.",
+  "description": "Who uses the apps and from where: active users, logins, countries, regions, and ad visitors, from API request logs, Dex login logs, and the squares web server's log.",
   "tags": [
     "maxhq"
   ],
@@ -576,7 +576,7 @@
     {
       "type": "table",
       "title": "Users",
-      "description": "API requests per signed-in user, app, and country over the dashboard's time range.",
+      "description": "API requests per signed-in user, app, location, and IP over the dashboard's time range. Region and city are blank before Cloudflare's visitor location headers were turned on.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -587,7 +587,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "sum by (user, namespace, cf_country) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\" | user=~\"$user\" [$__range]))",
+          "expr": "sum by (user, namespace, cf_country, cf_region, cf_city, client_ip) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\", cf_region=\"cf_region\", cf_city=\"cf_city\", client_ip=\"client_ip\" | user=~\"$user\" [$__range]))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -599,7 +599,25 @@
             "align": "auto"
           }
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "User"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Contests for ${__value.raw}",
+                    "url": "/d/maxhq-contests/contests?var-user=${__value.raw:percentencode}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "showHeader": true,
@@ -622,12 +640,18 @@
               "user": 0,
               "namespace": 1,
               "cf_country": 2,
-              "Value #A": 3
+              "cf_region": 3,
+              "cf_city": 4,
+              "client_ip": 5,
+              "Value #A": 6
             },
             "renameByName": {
               "user": "User",
               "namespace": "App",
               "cf_country": "Country",
+              "cf_region": "Region",
+              "cf_city": "City",
+              "client_ip": "IP",
               "Value #A": "Requests"
             }
           }
@@ -637,75 +661,7 @@
       "gridPos": {
         "x": 0,
         "y": 14,
-        "w": 12,
-        "h": 10
-      }
-    },
-    {
-      "type": "table",
-      "title": "Logins",
-      "description": "Successful Dex logins per user, provider, and client over the dashboard's time range.",
-      "datasource": {
-        "type": "loki",
-        "uid": "${loki}"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${loki}"
-          },
-          "expr": "sum by (email, connector_id, client_id) (count_over_time({cluster=\"$cluster\", namespace=\"dex\"} |= \"login successful\" | logfmt [$__range]))",
-          "refId": "A",
-          "queryType": "instant",
-          "legendFormat": ""
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "auto"
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "sortBy": [
-          {
-            "displayName": "Logins",
-            "desc": true
-          }
-        ]
-      },
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true
-            },
-            "indexByName": {
-              "email": 0,
-              "connector_id": 1,
-              "client_id": 2,
-              "Value #A": 3
-            },
-            "renameByName": {
-              "email": "Email",
-              "connector_id": "Provider",
-              "client_id": "Client",
-              "Value #A": "Logins"
-            }
-          }
-        }
-      ],
-      "id": 10,
-      "gridPos": {
-        "x": 12,
-        "y": 14,
-        "w": 12,
+        "w": 24,
         "h": 10
       }
     },
@@ -799,6 +755,74 @@
       }
     },
     {
+      "type": "table",
+      "title": "Logins",
+      "description": "Successful Dex logins per user, provider, and client over the dashboard's time range.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "sum by (email, connector_id, client_id) (count_over_time({cluster=\"$cluster\", namespace=\"dex\"} |= \"login successful\" | logfmt [$__range]))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Logins",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "email": 0,
+              "connector_id": 1,
+              "client_id": 2,
+              "Value #A": 3
+            },
+            "renameByName": {
+              "email": "Email",
+              "connector_id": "Provider",
+              "client_id": "Client",
+              "Value #A": "Logins"
+            }
+          }
+        }
+      ],
+      "id": 10,
+      "gridPos": {
+        "x": 12,
+        "y": 24,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
       "type": "logs",
       "title": "Recent logins",
       "description": "Successful Dex logins, newest first.",
@@ -827,9 +851,9 @@
       },
       "id": 12,
       "gridPos": {
-        "x": 12,
-        "y": 24,
-        "w": 12,
+        "x": 0,
+        "y": 32,
+        "w": 24,
         "h": 8
       }
     },
@@ -847,7 +871,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "{cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\", method=\"method\", route=\"route\", status=\"status\", service=\"service\" | user=~\"$user\" | line_format \"{{.user}}  {{.cf_country}}  {{ or .service .namespace }}  {{.method}} {{.route}}  {{.status}}\"",
+          "expr": "{cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\", cf_region=\"cf_region\", cf_city=\"cf_city\", client_ip=\"client_ip\", method=\"method\", route=\"route\", status=\"status\", service=\"service\" | user=~\"$user\" | line_format \"{{.user}}  {{.cf_city}}, {{.cf_region}}, {{.cf_country}}  {{.client_ip}}  {{ or .service .namespace }}  {{.method}} {{.route}}  {{.status}}\"",
           "refId": "A",
           "queryType": "range",
           "legendFormat": ""
@@ -863,7 +887,7 @@
       "id": 13,
       "gridPos": {
         "x": 0,
-        "y": 32,
+        "y": 40,
         "w": 24,
         "h": 10
       }
@@ -876,7 +900,7 @@
       "id": 14,
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 50,
         "w": 24,
         "h": 1
       }
@@ -960,8 +984,8 @@
       "id": 15,
       "gridPos": {
         "x": 0,
-        "y": 43,
-        "w": 16,
+        "y": 51,
+        "w": 12,
         "h": 10
       }
     },
@@ -1035,9 +1059,339 @@
       ],
       "id": 16,
       "gridPos": {
-        "x": 16,
-        "y": 43,
-        "w": 8,
+        "x": 12,
+        "y": 51,
+        "w": 6,
+        "h": 10
+      }
+    },
+    {
+      "type": "table",
+      "title": "Regions",
+      "description": "Signed-in users per country and region. Blank before Cloudflare's visitor location headers were turned on.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "count by (cf_country, cf_region) (sum by (cf_country, cf_region, user) (count_over_time({cluster=\"$cluster\", namespace=~\"$app\"} |= \"\\\"msg\\\":\\\"request\\\"\" | json user=\"user\", cf_country=\"cf_country\", cf_region=\"cf_region\", cf_city=\"cf_city\", client_ip=\"client_ip\" | user=~\"$user\" | cf_region!=\"\" [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Users",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "cf_country": 0,
+              "cf_region": 1,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "cf_country": "Country",
+              "cf_region": "Region",
+              "Value #A": "Users"
+            }
+          }
+        }
+      ],
+      "id": 17,
+      "gridPos": {
+        "x": 18,
+        "y": 51,
+        "w": 6,
+        "h": 10
+      }
+    },
+    {
+      "type": "row",
+      "title": "Ads",
+      "collapsed": false,
+      "panels": [],
+      "id": 18,
+      "gridPos": {
+        "x": 0,
+        "y": 61,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Ad visitors",
+      "description": "Distinct IPs that arrived from an ad click over the dashboard's time range, from the squares web server's log. Match an IP against the Users table to see who signed in.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "count(sum by (ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value"
+      },
+      "id": 19,
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "type": "barchart",
+      "title": "Ad visitors per day",
+      "description": "Distinct ad-click IPs per day and network.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "count by (day, network) (sum by (day, network, ip) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "min": 0,
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 1
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "day\\network",
+        "stacking": "normal",
+        "orientation": "vertical",
+        "showValue": "never",
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 100,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "network",
+            "rowField": "day",
+            "valueField": "Value #A",
+            "emptyValue": "zero"
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "day\\network"
+              }
+            ]
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "day\\network": ""
+            }
+          }
+        }
+      ],
+      "id": 20,
+      "gridPos": {
+        "x": 6,
+        "y": 62,
+        "w": 18,
+        "h": 4
+      }
+    },
+    {
+      "type": "table",
+      "title": "Ad visitors",
+      "description": "One row per IP that arrived from an ad: network, campaign, device, and how many web requests it made.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "sum by (ip, network, campaign, device) (count_over_time({cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua [$__range]))",
+          "refId": "A",
+          "queryType": "instant",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Requests",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "ip": 0,
+              "network": 1,
+              "campaign": 2,
+              "device": 3,
+              "Value #A": 4
+            },
+            "renameByName": {
+              "ip": "IP",
+              "network": "Network",
+              "campaign": "Campaign",
+              "device": "Device",
+              "Value #A": "Requests"
+            }
+          }
+        }
+      ],
+      "id": 21,
+      "gridPos": {
+        "x": 0,
+        "y": 66,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Ad landings",
+      "description": "Web requests carrying an ad click id, newest first; repeats from one visit are collapsed.",
+      "datasource": {
+        "type": "loki",
+        "uid": "${loki}"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${loki}"
+          },
+          "expr": "{cluster=\"$cluster\", namespace=\"squares\", container=\"squares\"} |~ `[?&](gclid|gbraid|wbraid|fbclid)=` | regexp `\"[A-Z]+ [^ ]* HTTP/[^\"]*\" \\d+ \\d+ \"[^\"]*\" \"(?P<ua>[^\"]*)\" \"(?:[^\"]*,\\s*)?(?P<ip>[^,\"\\s]+),\\s*[^,\"\\s]+\"\\s*$` | regexp `utm_campaign=(?P<campaign>[^&\" ]+)` | label_format network=`{{ if contains \"fbclid\" __line__ }}facebook{{ else }}google{{ end }}`, device=`{{ if contains \"iPhone\" .ua }}iPhone{{ else if contains \"Android\" .ua }}Android{{ else }}desktop{{ end }}` | drop ua | line_format \"{{.ip}}  {{.device}}  {{.network}} {{.campaign}}\"",
+          "refId": "A",
+          "queryType": "range",
+          "legendFormat": ""
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": false,
+        "sortOrder": "Descending",
+        "enableLogDetails": true,
+        "dedupStrategy": "exact"
+      },
+      "id": 22,
+      "gridPos": {
+        "x": 12,
+        "y": 66,
+        "w": 12,
         "h": 10
       }
     }

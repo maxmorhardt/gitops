@@ -44,6 +44,13 @@ cluster:
       login: true
       passwordSecret:
         name: postgres-squares-user
+    # not used in dev
+    - name: grafana
+      ensure: present
+      login: true
+      connectionLimit: 5
+      passwordSecret:
+        name: postgres-grafana-user
   monitoring:
     enabled: true
     podMonitor:

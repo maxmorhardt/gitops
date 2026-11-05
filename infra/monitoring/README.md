@@ -53,6 +53,9 @@ These live in the stack's UI rather than in git, so a new stack needs them recre
 
   Alertmanager retries at each group interval until Telegram gets through.
 - **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because synced rules only query the metrics data source.
+- **Postgres data source** (prod only), for the Contests dashboard:
+  - Private data source connect network `pdc-maxhqio-default` and its signing token `prod`, sealed as `monitoring/pdc-agent` (key `token`). [`pdc/pdc-agent.yaml`](pdc/pdc-agent.yaml) runs the agent in prod; it only forwards to `postgres-cluster-ro`.
+  - A PostgreSQL data source whose name contains `postgres`: host `postgres-cluster-ro.cnpg-database.svc.cluster.local:5432`, database `squares`, user `grafana` with the password from `scripts/secrets.sh get prod cnpg-database/postgres-grafana-user password`, TLS `require`, version 15+, max open connections 5, and the PDC network above. The role and its grants are in [postgres/README.md](../postgres/README.md).
 
 ## Dashboards
 
@@ -60,7 +63,8 @@ These live in the stack's UI rather than in git, so a new stack needs them recre
 - **[Nodes](dashboards/nodes.json):** one node: CPU by mode, which pods use its CPU and memory, CPU spent outside pods (k3s and the OS), load, pressure, disks, network, and temperatures. The Cluster dashboard's node names link here.
 - **[Workloads](dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
 - **[Apps](dashboards/apps.json):** every API service at a glance, then one service's requests, 5xx rate, mean latency, endpoints, database pool, outbox lag, and error and warning logs, plus squares activity and realtime streams. Latency is the mean from the histogram's sum and count, since the series budget leaves too few buckets for useful percentiles.
-- **[Users](dashboards/users.json):** daily and hourly active users, who they are, which countries they're in, and Dex logins. Every panel queries Loki: the API services' `request` log line (with `user` and `cf_country`) and Dex's `login successful` line. That keeps it off the series budget, and logs are kept 14 days.
+- **[Users](dashboards/users.json):** active users, who and where they are, Dex logins, and ad visitors. Every panel queries Loki (API request logs, Dex logins, and the squares access log), which keeps it off the series budget; logs are kept 14 days.
+- **[Contests](dashboards/contests.json):** squares contests, users, what each user did, and one contest's players and squares, from the Postgres replica. Set `Hide users` to your own accounts to leave test contests out.
 
 ## Uptime
 

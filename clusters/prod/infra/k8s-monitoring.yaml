@@ -25,6 +25,9 @@ spec:
     - repoURL: https://github.com/maxmorhardt/gitops.git
       targetRevision: main
       path: infra/monitoring/rules
+    - repoURL: https://github.com/maxmorhardt/gitops.git
+      targetRevision: main
+      path: infra/monitoring/pdc
   syncPolicy:
     automated:
       prune: true
