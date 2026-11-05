@@ -16,7 +16,7 @@ The secrets in `cnpg-database`, sealed into `clusters/<cluster>/secrets/cnpg-dat
 | `postgres-superuser` | `username` (`postgres`), `password` |
 | `postgres-admin-user` | `username`, `password` — owner of the `maxhq` database |
 | `postgres-dex-user`, `postgres-olympics-user`, `postgres-squares-user` | `username`, `password` — the declared `dex`, `olympics`, and `squares` roles |
-| `postgres-grafana-user` | `username` (`grafana`), `password` — prod only, the read-only role behind Grafana's Postgres data source; dev's `values-cluster-dev.yaml` lists its roles without it |
+| `postgres-grafana-user` | `username` (`grafana`), `password` — prod only |
 | `aws-s3-credentials` | `ACCESS_KEY_ID`, `ACCESS_SECRET_KEY` — prod backups only |
 
 ## Connecting locally
