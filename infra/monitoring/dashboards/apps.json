@@ -1745,7 +1745,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(increase(players_removed_total{cluster=\"$cluster\"}[$__interval]))",
+          "expr": "sum(increase(players_banned_total{cluster=\"$cluster\"}[$__interval]))",
           "refId": "E",
           "legendFormat": "players banned",
           "instant": false,
