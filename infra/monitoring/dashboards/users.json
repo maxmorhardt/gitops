@@ -1162,7 +1162,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count(sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1209,7 +1209,7 @@
     {
       "type": "stat",
       "title": "Ad sessions signed in",
-      "description": "Ad sessions in which someone then signed in.",
+      "description": "Ad sessions with a signed-in user, whether they signed in after the click or already were.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -1220,7 +1220,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count(sum by (session_id, user_email) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | user_email!=\"\" [$__range])) and on (session_id) sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range])))",
+          "expr": "count(sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | user_email!=\"\" [$__range])) and on (session_id) sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1278,7 +1278,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "count by (day, event_data_ad_click) (sum by (day, event_data_ad_click, session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
+          "expr": "count by (day, event_data_ad_click) (sum by (day, event_data_ad_click, session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format day=`{{ __timestamp__ | date \"2006-01-02\" }}` [$__range])))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
@@ -1429,7 +1429,7 @@
     {
       "type": "table",
       "title": "Ad sessions signed in",
-      "description": "Who signed in during an ad session. Click a user for their contests or requests.",
+      "description": "Who was signed in during an ad session. Click a user for their contests or requests.",
       "datasource": {
         "type": "loki",
         "uid": "${loki}"
@@ -1440,7 +1440,7 @@
             "type": "loki",
             "uid": "${loki}"
           },
-          "expr": "sum by (session_id, user_email) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | user_email!=\"\" [$__range])) and on (session_id) sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" | label_format device=`{{ if eq .browser_mobile \"true\" }}{{ .os_name }}{{ else }}desktop{{ end }}` [$__range]))",
+          "expr": "sum by (session_id, user_email) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | user_email!=\"\" [$__range])) and on (session_id) sum by (session_id) (count_over_time({kind=\"event\", service_name=\"squares\", deployment_environment=~\"$cluster.*\"} | logfmt | event_name=\"landing\" | event_data_ad_click!=\"\" [$__range]))",
           "refId": "A",
           "queryType": "instant",
           "legendFormat": ""
