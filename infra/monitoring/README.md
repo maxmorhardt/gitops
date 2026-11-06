@@ -64,7 +64,7 @@ These live in the stack's UI rather than in git, so a new stack needs them recre
 - **[Workloads](dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
 - **[Apps](dashboards/apps.json):** every API service at a glance, then one service's requests, 5xx rate, mean latency, endpoints, database pool, outbox lag, and error and warning logs, plus squares activity and realtime streams. Latency is the mean from the histogram's sum and count, since the series budget leaves too few buckets for useful percentiles.
 - **[Users](dashboards/users.json):** active users, who and where they are, Dex logins, and ad sessions and who signed in from them. Every panel queries Loki (API request logs, Dex logins, and squares' Faro events), which keeps it off the series budget; logs are kept 14 days.
-- **[Contests](dashboards/contests.json):** squares contests, users, what each user did, and one contest's players and squares, from the Postgres replica. Set `Hide users` to your own accounts to leave test contests out.
+- **[Contests](dashboards/contests.json):** squares contests, users, what each user did, bans, and one contest's players, squares, and bans, from the Postgres replica. Set `Hide users` to your own accounts to leave test contests out.
 
 ## Uptime
 

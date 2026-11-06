@@ -63,7 +63,11 @@
         "definition": "label_values(kube_node_info, cluster)",
         "refresh": 2,
         "sort": 1,
-        "current": {},
+        "current": {
+          "selected": true,
+          "text": "prod",
+          "value": "prod"
+        },
         "hide": 0,
         "multi": false,
         "includeAll": false
@@ -1733,6 +1737,39 @@
           "expr": "sum(increase(scores_recorded_total{cluster=\"$cluster\"}[$__interval]))",
           "refId": "D",
           "legendFormat": "scores recorded",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(players_removed_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "E",
+          "legendFormat": "players banned",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(players_unbanned_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "F",
+          "legendFormat": "players unbanned",
+          "instant": false,
+          "range": true
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(increase(invite_links_reset_total{cluster=\"$cluster\"}[$__interval]))",
+          "refId": "G",
+          "legendFormat": "invite links reset",
           "instant": false,
           "range": true
         }
