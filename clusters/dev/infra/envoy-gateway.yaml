@@ -14,7 +14,7 @@ spec:
     - repoURL: docker.io/envoyproxy
       chart: gateway-helm
       # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm
-      targetRevision: 1.9.3
+      targetRevision: 1.10.0
       helm:
         valueFiles:
           - $values/infra/envoy-gateway/values.yaml
