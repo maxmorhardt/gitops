@@ -32,7 +32,7 @@ spec:
               app.kubernetes.io/name: pdc-agent
       containers:
         - name: pdc-agent
-          image: grafana/pdc-agent:0.0.67
+          image: grafana/pdc-agent:0.0.68
           args:
             - -token
             - $(TOKEN)
