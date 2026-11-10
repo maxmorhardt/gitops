@@ -103,7 +103,7 @@ jobs:
             helm_repo_name: jetstack
             helm_repo_url: https://charts.jetstack.io
             values_files: infra/cert-manager/values.yaml
-    uses: maxmorhardt/workflows/.github/workflows/validate-helm.yml@aa3842528749b4315e9c6115ee980da7f511b172 # v1.0.0
+    uses: maxmorhardt/workflows/.github/workflows/validate-helm.yml@4d64c3534f2e10f2fe0d602f6e01b6db0d384ef7 # v1.0.1
     with:
       repository: ${{ github.repository }}
       chart: ${{ matrix.chart }}
@@ -114,7 +114,7 @@ jobs:
       lint: false
 
   validate-manifests:
-    uses: maxmorhardt/workflows/.github/workflows/validate-manifests.yml@aa3842528749b4315e9c6115ee980da7f511b172 # v1.0.0
+    uses: maxmorhardt/workflows/.github/workflows/validate-manifests.yml@4d64c3534f2e10f2fe0d602f6e01b6db0d384ef7 # v1.0.1
     with:
       repository: ${{ github.repository }}
       manifests: |
