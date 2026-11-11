@@ -29,10 +29,10 @@ scripts/secrets.sh set <cluster> dex/dex-env ARGOCD_CLIENT_SECRET=
 
 ## Chart registry
 
-`ghcr.io/maxmorhardt/charts` (public and private charts) is registered only by the sealed `argocd/ghcr-charts` repository secret, which carries a GitHub token that can read packages. Don't also list it under `configs.repositories`: Argo CD doesn't merge repositories that share a URL, and an entry without credentials can win, failing private chart pulls with 401.
+`ghcr.io/maxmorhardt/charts` (public and private charts) is registered once, as the `charts` entry under `configs.repositories`. Its credentials come from the sealed `argocd/ghcr-charts` secret, a credential template (`secret-type: repo-creds`) holding a GitHub token that can read packages, which Argo CD applies to every repository under that URL. Don't label it `repository`: Argo CD doesn't merge repositories that share a URL, and the entry without credentials can win, failing private chart pulls with 401.
 
 ```bash
-scripts/secrets.sh new <cluster> argocd/ghcr-charts --label argocd.argoproj.io/secret-type=repository type=helm name=ghcr-charts url=ghcr.io/maxmorhardt/charts enableOCI=true username=maxmorhardt password=<token>
+scripts/secrets.sh new <cluster> argocd/ghcr-charts --label argocd.argoproj.io/secret-type=repo-creds type=helm url=ghcr.io/maxmorhardt/charts enableOCI=true username=maxmorhardt password=<token>
 ```
 
 ## Notifications
