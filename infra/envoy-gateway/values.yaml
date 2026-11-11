@@ -14,3 +14,6 @@ config:
     logging:
       level:
         default: info
+
+crds:
+  enabled: false
