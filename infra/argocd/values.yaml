@@ -32,11 +32,6 @@ configs:
     policy.csv: |
       g, maxmorhardt13@gmail.com, role:admin
   repositories:
-    charts:
-      name: charts
-      type: helm
-      url: ghcr.io/maxmorhardt/charts
-      enableOCI: 'true'
     envoyproxy:
       name: envoyproxy
       type: helm

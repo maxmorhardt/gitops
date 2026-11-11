@@ -27,6 +27,14 @@ scripts/secrets.sh new <cluster> argocd/argocd-oidc --label app.kubernetes.io/pa
 scripts/secrets.sh set <cluster> dex/dex-env ARGOCD_CLIENT_SECRET=
 ```
 
+## Chart registry
+
+`ghcr.io/maxmorhardt/charts` (public and private charts) is registered only by the sealed `argocd/ghcr-charts` repository secret, which carries a GitHub token that can read packages. Don't also list it under `configs.repositories`: Argo CD doesn't merge repositories that share a URL, and an entry without credentials can win, failing private chart pulls with 401.
+
+```bash
+scripts/secrets.sh new <cluster> argocd/ghcr-charts --label argocd.argoproj.io/secret-type=repository type=helm name=ghcr-charts url=ghcr.io/maxmorhardt/charts enableOCI=true username=maxmorhardt password=<token>
+```
+
 ## Notifications
 
 Every app posts to Telegram when its health has been `Degraded` for 10 minutes and when a sync fails, prefixed with the cluster (`[dev]` or `[prod]`, from `notifications.context`). Successful deploys don't post: dev deploys on every merge, and prod releases already show in GitHub. The bot's API URL (`https://api.telegram.org/bot<token>`) lives in `argocd/argocd-notifications-secret`, and the chat ID is `notifications.context.telegramChatId`:
