@@ -18,7 +18,6 @@ spec:
       helm:
         valueFiles:
           - $values/infra/envoy-gateway/values.yaml
-          - $values/infra/envoy-gateway/values-dev.yaml
     - repoURL: https://github.com/maxmorhardt/gitops.git
       targetRevision: main
       ref: values
