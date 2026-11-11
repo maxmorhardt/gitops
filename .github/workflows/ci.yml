@@ -29,6 +29,10 @@ jobs:
             # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-helm
             chart_version: '1.10.0'
             values_files: infra/envoy-gateway/values.yaml
+          - chart: oci://docker.io/envoyproxy/gateway-crds-helm
+            # renovate: datasource=docker depName=docker.io/envoyproxy/gateway-crds-helm
+            chart_version: '1.10.0'
+            values_files: infra/envoy-gateway/values-crds.yaml
           - chart: kubereboot/kured
             # renovate: datasource=helm depName=kured registryUrl=https://kubereboot.github.io/charts
             chart_version: '6.1.0'
