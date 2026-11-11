@@ -4,8 +4,13 @@ Gateway API implementation fronting all HTTP traffic for `maxhq.io` (prod) and `
 
 Two pieces:
 
-1. **envoy-gateway** (this directory): the upstream controller chart, plus the Gateway API CRDs. Synced from `clusters/<cluster>/infra/envoy-gateway.yaml`.
+1. **envoy-gateway** (this directory): the upstream controller chart with its CRDs turned off (`crds.enabled: false`). Synced from `clusters/<cluster>/infra/envoy-gateway.yaml`.
 2. **gateway**: chart from maxhq (published to `ghcr.io/maxmorhardt/charts`) with the actual Gateway resources: the `maxhq` GatewayClass + Gateway (listeners for `<domain>` and `*.<domain>` on 443, http→https redirect on 80), the `EnvoyProxy` config (2 proxy replicas), prod's cloudflared, a `ClientTrafficPolicy` resolving the real client IP from `X-Forwarded-For`, and that strips client-supplied identity headers (`X-Auth-*`, `X-Internal-Token`) before any route sees them. Synced from `clusters/<cluster>/apps/gateway.yaml`, which sets the cluster's domain and TLS secret.
+
+## CRDs
+
+- **Gateway API CRDs** (standard channel) and the `safe-upgrades.gateway.networking.k8s.io` admission policy come from k3s's packaged `gateway-api-crd` HelmChart (k3s 1.37+), so their version moves with k3s upgrades. Only standard-channel resources are available.
+- **Envoy Gateway CRDs** (`gateway.envoyproxy.io`: SecurityPolicy, ClientTrafficPolicy, EnvoyProxy, BackendTrafficPolicy, ...) come from the `envoy-gateway-crds` app (`gateway-crds-helm`, `values-crds.yaml`), kept at the same version as `gateway-helm`. That app has no prune and no resources finalizer: deleting the CRDs would delete every policy built on them.
 
 Apps attach by creating an `HTTPRoute` in their own namespace with `parentRefs` pointing at `maxhq` / `envoy-gateway-system`. The Gateway allows routes from all namespaces.
 
