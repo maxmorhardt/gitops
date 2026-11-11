@@ -15,7 +15,7 @@ jobs:
         include:
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.14.0'
+            chart_version: '10.17.0'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_files: infra/argocd/values.yaml
@@ -63,7 +63,7 @@ jobs:
             values_files: infra/sealed-secrets/values.yaml
           - chart: argo/argo-cd
             # renovate: datasource=helm depName=argo-cd registryUrl=https://argoproj.github.io/argo-helm
-            chart_version: '10.14.0'
+            chart_version: '10.17.0'
             helm_repo_name: argo
             helm_repo_url: https://argoproj.github.io/argo-helm
             values_files: |
