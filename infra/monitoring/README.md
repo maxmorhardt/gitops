@@ -40,32 +40,29 @@ The same Application applies everything in [`rules/`](rules/):
 
 Grafana Cloud allows at most 20 rules per group, so split any group that grows past that. The ruler rejects the whole group otherwise.
 
-### Set up by hand in Grafana
+### Grafana
 
-These live in the stack's UI rather than in git, so a new stack needs them recreated:
+The stack's own configuration is Terraform in maxhq ([`infra/terraform/grafana`](https://github.com/maxmorhardt/maxhq/tree/main/infra/terraform/grafana)): the `repo alerts` folder (uid `repo-alerts`) and the `alloy-rules` service account rule sync uses, the Telegram contact point `alerts` and the notification policy (grouped by `alertname` and `cluster`, `severity = info` routed to `empty`), the `Metrics near free tier limit` alert (it reads `grafanacloud-usage`, which synced rules can't), the prod Postgres data source and its private data source connect network `pdc-maxhqio-default`, the synthetic checks, the squares Faro app, and the dashboards.
 
-- **Rule sync**: the `repo alerts` folder (uid `repo-alerts`), and a service account `alloy-rules` with the Admin role. Its token is the sealed `monitoring/grafana-rules` secret in each cluster.
+Still set up by hand:
 
-- **Notification routing**, in Alerting > Notification configuration:
-  - Contact point `alerts`, a Telegram integration with the `@maxhqio_bot` bot token and chat ID `8753214944`.
-  - Default notification policy: sends to `alerts`, grouped by `alertname` and `cluster`.
-  - A child route `severity = info` that sends to `empty`, a contact point with no integrations, which silences info alerts.
+- The `alloy-rules` token, sealed as `monitoring/grafana-rules` in each cluster.
+- The `empty` contact point, one with no integrations, which silences info alerts.
+- **Postgres data source** (prod only): the PDC signing token `prod`, sealed as `monitoring/pdc-agent` (key `token`). [`pdc/pdc-agent.yaml`](pdc/pdc-agent.yaml) runs the agent in prod; it only forwards to `postgres-cluster-ro`. The `grafana` role and its grants are in [postgres/README.md](../postgres/README.md).
 
-  Alertmanager retries at each group interval until Telegram gets through.
-- **Series limit alert**, `Metrics near free tier limit`: `max(grafanacloud_instance_active_series)` on the `grafanacloud-usage` data source, above 9000 for 15m, with `severity=warning`. It lives in the `maxhq` folder, `usage` group, evaluated every 5m. It can't live in `rules/`, because synced rules only query the metrics data source.
-- **Postgres data source** (prod only), for the Contests dashboard:
-  - Private data source connect network `pdc-maxhqio-default` and its signing token `prod`, sealed as `monitoring/pdc-agent` (key `token`). [`pdc/pdc-agent.yaml`](pdc/pdc-agent.yaml) runs the agent in prod; it only forwards to `postgres-cluster-ro`.
-  - A PostgreSQL data source whose name contains `postgres`: host `postgres-cluster-ro.cnpg-database.svc.cluster.local:5432`, database `squares`, user `grafana` with the password from `scripts/secrets.sh get prod cnpg-database/postgres-grafana-user password`, TLS `require`, version 15+, max open connections 5, and the PDC network above. The role and its grants are in [postgres/README.md](../postgres/README.md).
+Alertmanager retries at each group interval until Telegram gets through.
 
 ## Dashboards
 
-- **[Cluster](dashboards/cluster.json):** health at a glance, nodes (CPU, memory, disk, network, Pi CPU and NVMe temperatures, CPU frequency), CPU and memory by namespace, pods not running and restarts, gateway traffic and errors by route, and Argo CD, Postgres, Valkey, certificates, and kured.
-- **[Nodes](dashboards/nodes.json):** one node: CPU by mode, which pods use its CPU and memory, CPU spent outside pods (k3s and the OS), load, pressure, disks, network, and temperatures. The Cluster dashboard's node names link here.
-- **[Workloads](dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
-- **[Apps](dashboards/apps.json):** every API service at a glance, then one service's requests, 5xx rate, mean latency, endpoints, database pool, outbox lag, and error and warning logs, plus squares activity and realtime streams. Latency is the mean from the histogram's sum and count, since the series budget leaves too few buckets for useful percentiles.
-- **[Users](dashboards/users.json):** active users, who and where they are, Dex logins, and ad sessions and who signed in from them. Every panel queries Loki (API request logs, Dex logins, and squares' Faro events), which keeps it off the series budget; logs are kept 14 days.
-- **[Contests](dashboards/contests.json):** squares contests, users, what each user did, bans, and one contest's players, squares, and bans, from the Postgres replica. Set `Hide users` to your own accounts to leave test contests out.
+Dashboard JSON lives in maxhq at [`infra/terraform/grafana/dashboards`](https://github.com/maxmorhardt/maxhq/tree/main/infra/terraform/grafana/dashboards); merging a change there applies it.
+
+- **[Cluster](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/grafana/dashboards/cluster.json):** health at a glance, nodes (CPU, memory, disk, network, Pi CPU and NVMe temperatures, CPU frequency), CPU and memory by namespace, pods not running and restarts, gateway traffic and errors by route, and Argo CD, Postgres, Valkey, certificates, and kured.
+- **[Nodes](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/grafana/dashboards/nodes.json):** one node: CPU by mode, which pods use its CPU and memory, CPU spent outside pods (k3s and the OS), load, pressure, disks, network, and temperatures. The Cluster dashboard's node names link here.
+- **[Workloads](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/grafana/dashboards/workloads.json):** one namespace's pods: CPU and memory against requests and limits, throttling, network, restarts, and logs.
+- **[Apps](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/grafana/dashboards/apps.json):** every API service at a glance, then one service's requests, 5xx rate, mean latency, endpoints, database pool, outbox lag, and error and warning logs, plus squares activity and realtime streams. Latency is the mean from the histogram's sum and count, since the series budget leaves too few buckets for useful percentiles.
+- **[Users](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/grafana/dashboards/users.json):** active users, who and where they are, Dex logins, and ad sessions and who signed in from them. Every panel queries Loki (API request logs, Dex logins, and squares' Faro events), which keeps it off the series budget; logs are kept 14 days.
+- **[Contests](https://github.com/maxmorhardt/maxhq/blob/main/infra/terraform/grafana/dashboards/contests.json):** squares contests, users, what each user did, bans, and one contest's players, squares, and bans, from the Postgres replica. Set `Hide users` to your own accounts to leave test contests out.
 
 ## Uptime
 
-Synthetic Monitoring checks are set up in the stack's UI (Testing & synthetics > Synthetics), with alerting on the check: `https://maxhq.io`, `https://squares.maxhq.io`, `https://api.maxhq.io/squares/stats`, `https://login.maxhq.io/.well-known/openid-configuration`, `https://olympics.maxhq.io`.
+Synthetic Monitoring checks `https://maxhq.io`, `https://squares.maxhq.io`, `https://api.maxhq.io/squares/stats`, and `https://login.maxhq.io/.well-known/openid-configuration` from NorthCalifornia and NorthVirginia every 5 minutes, with alerting on each check. They are in the same Terraform.
