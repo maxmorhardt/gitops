@@ -71,7 +71,7 @@ kubeconform -strict -summary <manifest>                   # raw manifests
 
 - Always render before pushing. A values key that the upstream chart does not recognize is silently ignored, so confirm the rendered output actually changed the way you expect.
 - For an `Application` change, verify the chart version exists at the referenced `repoURL` first. Argo will sit in a failed sync otherwise.
-- For alert or dashboard changes, validate the JSON or rule renders before committing, since Grafana and Prometheus fail quietly on malformed input.
+- For alert changes, validate that the rule renders before committing, since Grafana and Prometheus fail quietly on malformed input. Dashboards live in maxhq's `infra/terraform/grafana`.
 - After merging, watch the Argo sync rather than assuming success. `prune` means a mistake can remove resources, not just fail to add them.
 
 ## Dependency Checklist

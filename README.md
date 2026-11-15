@@ -32,7 +32,8 @@ Desired state for the `dev` and `prod` k3s clusters. Argo CD on each cluster rec
 - **Observability**: Grafana Alloy (`k8s-monitoring`) ships metrics, logs, and events to Grafana Cloud (see [monitoring](infra/monitoring/README.md)); Argo CD posts deploys and failures to Telegram.
 
 Outside the clusters, [maxhq](https://github.com/maxmorhardt/maxhq) and maxhq-private publish the app charts to
-`ghcr.io/maxmorhardt/charts`, and maxhq holds the k3s bootstrap and Terraform for DNS, backups, and GitHub settings.
+`ghcr.io/maxmorhardt/charts`, and maxhq holds the k3s bootstrap and the Terraform for everything set up outside the clusters (AWS, Cloudflare,
+GitHub, Grafana Cloud, Docker Hub, and Tailscale).
 
 ## Bring up a cluster
 
