@@ -71,7 +71,7 @@ kubeconform -strict -summary <manifest>                   # raw manifests
 
 - Always render before pushing. A values key that the upstream chart does not recognize is silently ignored, so confirm the rendered output actually changed the way you expect.
 - For an `Application` change, verify the chart version exists at the referenced `repoURL` first. Argo will sit in a failed sync otherwise.
-- For alert or dashboard changes, validate the JSON or rule renders before committing, since Grafana and Prometheus fail quietly on malformed input.
+- For alert changes, validate that the rule renders before committing, since Grafana and Prometheus fail quietly on malformed input. Dashboards live in maxhq's `infra/terraform/grafana`.
 - After merging, watch the Argo sync rather than assuming success. `prune` means a mistake can remove resources, not just fail to add them.
 
 ## Dependency Checklist
@@ -91,7 +91,7 @@ Before adding a new component or upstream chart, verify:
 - **Ingress**: the `maxhq` Envoy Gateway. Prod hostnames (`<app>.maxhq.io`) are Cloudflare-proxied CNAMEs to the prod Cloudflare Tunnel, which prod's cloudflared carries to the gateway's ClusterIP Service, with the Cloudflare origin certificate; prod opens no port. Dev's gateway listens on 443 on every node. Dev hostnames (`<app>.dev.maxhq.io`) are DNS-only records to dev's Tailscale IPs, so dev is reachable only on the tailnet, with a Let's Encrypt certificate from cert-manager. APIs share `api.maxhq.io` / `api.dev.maxhq.io` split by path prefix.
 - **Auth**: Dex at `login.maxhq.io` / `login.dev.maxhq.io`, federating Google, Microsoft, and GitHub. Email is the identity.
 - **Data**: PostgreSQL via CloudNativePG (`postgres-operator` plus `postgres-cluster`; prod backs up to `s3://maxhq-backups/prod/`), Valkey with Sentinel for caches and the squares event streams.
-- **Observability**: Grafana Alloy (`k8s-monitoring`) scrapes every ServiceMonitor and ships metrics, logs, and events to Grafana Cloud, which also evaluates every `PrometheusRule`. Nothing is stored in-cluster. Rules live in `infra/monitoring/rules/` and dashboard JSON in `infra/monitoring/dashboards/`. The free tier caps the stack at 10k series, so every metric source keeps only what the rules and dashboards read (see `infra/monitoring/README.md`).
+- **Observability**: Grafana Alloy (`k8s-monitoring`) scrapes every ServiceMonitor and ships metrics, logs, and events to Grafana Cloud, which also evaluates every `PrometheusRule`. Nothing is stored in-cluster. Rules live in `infra/monitoring/rules/`; dashboards and the rest of the Grafana stack are Terraform in maxhq (`infra/terraform/grafana`). The free tier caps the stack at 10k series, so every metric source keeps only what the rules and dashboards read (see `infra/monitoring/README.md`).
 - **Node maintenance**: kured coordinates rolling reboots, one node at a time, running `pre-reboot.sh` first. system-upgrade-controller tracks the k3s stable channel.
 
 ## Bootstrap Order
