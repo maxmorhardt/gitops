@@ -25,6 +25,8 @@ spec:
         auth:
           issuer: https://login.dev.maxhq.io
           jwksURI: https://login.dev.maxhq.io/keys
+        env:
+          EMAIL_FROM: "Squares <contact@notify.maxhq.io>"
   syncPolicy:
     automated:
       prune: true

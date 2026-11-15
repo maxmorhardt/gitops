@@ -18,6 +18,11 @@ spec:
       parameters:
         - name: image.tag
           value: 2.9.4
+      valuesObject:
+        env:
+          EMAIL_ENABLED: "true"
+          EMAIL_FROM: "Squares <squares@notify.maxhq.io>"
+          SMTP_HOST: smtp.zeptomail.com
   syncPolicy:
     automated:
       prune: true

@@ -18,6 +18,9 @@ spec:
       parameters:
         - name: image.tag
           value: 1.5.6
+      valuesObject:
+        env:
+          EMAIL_FROM: "Squares <contact@notify.maxhq.io>"
   syncPolicy:
     automated:
       prune: true

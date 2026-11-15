@@ -25,6 +25,11 @@ spec:
         auth:
           issuer: https://login.dev.maxhq.io
           jwksURI: https://login.dev.maxhq.io/keys
+        env:
+          EMAIL_ENABLED: "true"
+          EMAIL_FROM: "Squares <squares@notify.maxhq.io>"
+          SMTP_HOST: smtp.zeptomail.com
+          WEB_URL: https://squares.dev.maxhq.io
   syncPolicy:
     automated:
       prune: true
