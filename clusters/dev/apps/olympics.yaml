@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: olympics
-    targetRevision: 0.0.0-sha-d959982
+    targetRevision: 0.0.0-sha-83d233e
     helm:
       parameters:
         - name: image.tag
