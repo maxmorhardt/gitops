@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: ghcr.io/maxmorhardt/charts
     chart: maxhq
-    targetRevision: 0.0.0-sha-b2ca6d8
+    targetRevision: 0.0.0-sha-f7f538a
     helm:
       parameters:
         - name: image.tag
