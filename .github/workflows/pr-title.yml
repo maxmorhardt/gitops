@@ -9,4 +9,4 @@ permissions:
 
 jobs:
   pr-title:
-    uses: maxmorhardt/workflows/.github/workflows/pr-title.yml@aa409a1d4ba96589470a0280bb8955493b9101c0 # v1.0.3
+    uses: maxmorhardt/workflows/.github/workflows/pr-title.yml@3d52b7176014f9c58d54bf6f0d8be9c08b896aed # v1.0.4
